@@ -1,0 +1,3578 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Smart Task Manager - Complete productivity suite">
+    <link rel="manifest" href="data:application/json,{}">
+    <title>স্মার্ট টু-ডু লিস্ট | Smart To-Do List Pro</title>
+    <style>
+        /* ===== CSS Variables & Theme System ===== */
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a6fd6;
+            --secondary: #764ba2;
+            --accent: #ff6348;
+            --success: #2ed573;
+            --warning: #ffa502;
+            --danger: #ff4757;
+            --bg: #f8f9ff;
+            --bg-dark: #1a1a2e;
+            --card: #ffffff;
+            --text: #333333;
+            --text-light: #666666;
+            --border: #e0e0e0;
+            --shadow: 0 20px 60px rgba(0,0,0,0.3);
+            --shadow-sm: 0 5px 15px rgba(0,0,0,0.1);
+            --radius: 20px;
+            --radius-sm: 10px;
+            --transition: all 0.3s ease;
+            --font: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --bg: #1a1a2e;
+            --bg-dark: #0f0f1a;
+            --card: #16213e;
+            --text: #e0e0e0;
+            --text-light: #a0a0a0;
+            --border: #2a2a4a;
+            --shadow: 0 20px 60px rgba(0,0,0,0.5);
+            --shadow-sm: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Dracula Theme */
+        [data-theme="dracula"] {
+            --primary: #bd93f9;
+            --primary-dark: #a679f0;
+            --secondary: #ff79c6;
+            --accent: #ff5555;
+            --bg: #282a36;
+            --bg-dark: #21222c;
+            --card: #44475a;
+            --text: #f8f8f2;
+            --text-light: #6272a4;
+            --border: #6272a4;
+        }
+
+        /* Forest Theme */
+        [data-theme="forest"] {
+            --primary: #2d6a4f;
+            --primary-dark: #1b4332;
+            --secondary: #40916c;
+            --accent: #d8f3dc;
+            --bg: #f0fdf4;
+            --bg-dark: #dcfce7;
+            --card: #ffffff;
+            --text: #1b4332;
+            --text-light: #40916c;
+            --border: #95d5b2;
+        }
+
+        /* Ocean Theme */
+        [data-theme="ocean"] {
+            --primary: #0077b6;
+            --primary-dark: #023e8a;
+            --secondary: #00b4d8;
+            --accent: #90e0ef;
+            --bg: #caf0f8;
+            --bg-dark: #ade8f4;
+            --card: #ffffff;
+            --text: #03045e;
+            --text-light: #0077b6;
+            --border: #90e0ef;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            padding: 20px;
+            transition: var(--transition);
+            color: var(--text);
+        }
+
+        /* Focus Mode */
+        body.focus-mode .side-panel,
+        body.focus-mode .app-header,
+        body.focus-mode .tab-navigation,
+        body.focus-mode .filters,
+        body.focus-mode .pomodoro-side {
+            display: none !important;
+        }
+        body.focus-mode .tab-content.active {
+            grid-template-columns: 1fr !important;
+        }
+        body.focus-mode .main-section {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .app-container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* ===== Header ===== */
+        .app-header {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .app-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .app-title h1 {
+            color: var(--text);
+            font-size: 2em;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .language-toggle,
+        .theme-toggle {
+            display: flex;
+            gap: 5px;
+            background: var(--bg);
+            padding: 5px;
+            border-radius: 30px;
+        }
+
+        .lang-btn,
+        .theme-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+            background: transparent;
+            color: var(--text-light);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .lang-btn.active,
+        .theme-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+
+        /* ===== Tab Navigation ===== */
+        .tab-navigation {
+            display: flex;
+            gap: 8px;
+            background: var(--card);
+            padding: 10px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+            overflow-x: auto;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px 15px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 14px;
+            font-weight: 600;
+            background: transparent;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: var(--bg);
+        }
+
+        /* ===== Tab Content Layout ===== */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .main-section {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+        }
+
+        /* ===== Form Elements ===== */
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input,
+        select,
+        textarea {
+            padding: 12px 15px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            transition: var(--transition);
+            font-family: inherit;
+            background: var(--card);
+            color: var(--text);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        /* ===== Task/Goal/Journal Cards ===== */
+        .item-list {
+            list-style: none;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .item-card {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            transition: var(--transition);
+            border-left: 4px solid var(--primary);
+            position: relative;
+        }
+        .item-card:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow-sm);
+        }
+        .item-card.completed {
+            opacity: 0.7;
+            border-left-color: var(--success);
+        }
+        .item-card.overdue {
+            border-left-color: var(--danger);
+            background: rgba(255, 71, 87, 0.05);
+        }
+
+        /* Project color coding */
+        .project-work {
+            border-left-color: #4a90d9 !important;
+        }
+        .project-personal {
+            border-left-color: #f5a623 !important;
+        }
+        .project-health {
+            border-left-color: #7ed321 !important;
+        }
+        .project-learning {
+            border-left-color: #bd10e0 !important;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+        .item-title {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 16px;
+        }
+        .item-title.completed {
+            text-decoration: line-through;
+            color: var(--text-light);
+        }
+        .item-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        /* ===== Badges ===== */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-high {
+            background: #ffe0e0;
+            color: #d32f2f;
+        }
+        .badge-medium {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        .badge-low {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+        .badge-goal {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .badge-progress {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        .badge-project {
+            background: #e8eaf6;
+            color: #3f51b5;
+        }
+
+        /* ===== Progress Bars ===== */
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            transition: width 0.5s ease;
+            border-radius: 4px;
+            min-width: 40px;
+            text-align: center;
+            font-size: 10px;
+            color: white;
+            line-height: 8px;
+        }
+
+        /* ===== Stats Grid ===== */
+        .goal-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .stat-box {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            transition: var(--transition);
+        }
+        .stat-box:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-sm);
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+
+        /* ===== Journal ===== */
+        .journal-entry {
+            background: linear-gradient(135deg, var(--bg) 0%, rgba(118, 75, 162, 0.05) 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+        }
+        .journal-date {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .mood-selector {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+        .mood-btn {
+            font-size: 28px;
+            padding: 10px;
+            border: 2px solid transparent;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            background: var(--card);
+            transition: var(--transition);
+        }
+        .mood-btn:hover,
+        .mood-btn.selected {
+            border-color: var(--primary);
+            background: var(--bg);
+            transform: scale(1.15);
+        }
+
+        /* ===== Filters ===== */
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--border);
+            background: var(--card);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 13px;
+            color: var(--text-light);
+        }
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* ===== Chat ===== */
+        .chat-messages {
+            height: 250px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+        }
+        .chat-message {
+            margin-bottom: 12px;
+        }
+        .assistant-msg {
+            background: var(--card);
+            padding: 10px 15px;
+            border-radius: 15px 15px 15px 0;
+            margin-right: 20px;
+            font-size: 13px;
+            box-shadow: var(--shadow-sm);
+            color: var(--text);
+        }
+        .user-msg {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 15px 15px 0 15px;
+            margin-left: 20px;
+            font-size: 13px;
+        }
+        .chat-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        .chip-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        .chip {
+            background: var(--bg);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid var(--border);
+            color: var(--text-light);
+        }
+        .chip:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* ===== Pomodoro Timer ===== */
+        .pomodoro-container {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(255, 71, 87, 0.1) 0%, rgba(255, 165, 2, 0.1) 100%);
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+        }
+        .pomodoro-timer {
+            font-size: 60px;
+            font-weight: bold;
+            color: var(--primary);
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+        }
+        .pomodoro-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .pomodoro-status {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-top: 10px;
+        }
+        .pomodoro-sessions {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 15px;
+        }
+        .session-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: var(--transition);
+        }
+        .session-dot.completed {
+            background: var(--success);
+        }
+        .session-dot.current {
+            background: var(--warning);
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.3);
+            }
+        }
+
+        /* ===== Calendar View ===== */
+        .calendar-view {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 15px;
+        }
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            transition: var(--transition);
+            position: relative;
+            background: var(--bg);
+            color: var(--text);
+        }
+        .calendar-day:hover {
+            background: var(--primary);
+            color: white;
+        }
+        .calendar-day.today {
+            border: 2px solid var(--primary);
+            font-weight: bold;
+        }
+        .calendar-day.has-task::after {
+            content: '';
+            position: absolute;
+            bottom: 4px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+        .calendar-day.selected {
+            background: var(--primary);
+            color: white;
+        }
+        .calendar-header {
+            text-align: center;
+            font-weight: bold;
+            color: var(--text-light);
+            font-size: 12px;
+            padding: 5px;
+        }
+
+        /* ===== Gamification ===== */
+        .xp-bar {
+            height: 20px;
+            background: var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffa502, #ff6348);
+            transition: width 0.5s;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 11px;
+            line-height: 20px;
+            color: white;
+            font-weight: bold;
+        }
+        .achievement-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 14px;
+            background: var(--bg);
+            border: 2px solid gold;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .achievement-badge.unlocked {
+            border-color: gold;
+            background: linear-gradient(135deg, #ffd700, #ffed4a);
+        }
+        .achievement-badge.locked {
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+
+        /* ===== Charts ===== */
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin: 15px 0;
+        }
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 5px;
+            height: 150px;
+            padding: 10px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+        }
+        .bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--primary), var(--secondary));
+            border-radius: 5px 5px 0 0;
+            transition: height 0.5s;
+            position: relative;
+            min-width: 20px;
+        }
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: var(--text-light);
+        }
+        .bar-value {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* ===== Modal ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+            background: none;
+            border: none;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 1200px) {
+            .tab-content.active {
+                grid-template-columns: 1fr;
+            }
+            .input-group {
+                grid-template-columns: 1fr 1fr;
+            }
+            .app-header {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+        @media (max-width: 768px) {
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+            .tab-btn {
+                font-size: 12px;
+                padding: 10px;
+            }
+            .calendar-view {
+                grid-template-columns: repeat(7, 1fr);
+                font-size: 10px;
+            }
+            .app-title h1 {
+                font-size: 1.5em;
+            }
+        }
+
+        /* ===== Quick Actions ===== */
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .quick-action-btn {
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+            color: var(--text-light);
+        }
+        .quick-action-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            padding: 15px 20px;
+            border-radius: var(--radius-sm);
+            color: white;
+            font-weight: 600;
+            animation: slideIn 0.3s ease;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+        }
+        .toast-success {
+            background: var(--success);
+        }
+        .toast-error {
+            background: var(--danger);
+        }
+        .toast-info {
+            background: var(--primary);
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .streak-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: linear-gradient(135deg, #ffa502 0%, #ff6348 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .level-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* RTL Support for Bengali */
+        [lang="bn"] {
+            /* Bengali specific adjustments if needed */
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modalContent">
+            <button class="modal-close" id="modalCloseBtn">&times;</button>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <div class="app-header">
+            <div class="app-title">
+                <span style="font-size: 40px;">📋</span>
+                <h1 id="appTitle" data-bn="স্মার্ট টাস্ক ম্যানেজার প্রো" data-en="Smart Task Manager Pro">স্মার্ট টাস্ক ম্যানেজার প্রো</h1>
+                <span class="streak-badge" id="streakBadge">🔥 <span data-bn="দিন" data-en="days">দিন</span></span>
+                <span class="level-badge" id="levelBadge">⭐ <span data-bn="লেভেল" data-en="Level">লেভেল</span> 1</span>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-outline" id="focusModeBtn" title="Focus Mode" data-bn="ফোকাস" data-en="Focus">🎯 ফোকাস</button>
+                <button class="btn btn-outline" id="exportBtn" title="Export" data-bn="এক্সপোর্ট" data-en="Export">💾</button>
+                <button class="btn btn-outline" id="settingsBtn" title="Settings" data-bn="সেটিংস" data-en="Settings">⚙️</button>
+                <div class="language-toggle" id="languageToggle">
+                    <button class="lang-btn active" data-lang="bn">বাংলা</button>
+                    <button class="lang-btn" data-lang="en">English</button>
+                </div>
+                <div class="theme-toggle" id="themeToggle">
+                    <button class="theme-btn active" data-theme="default">☀️</button>
+                    <button class="theme-btn" data-theme="dark">🌙</button>
+                    <button class="theme-btn" data-theme="dracula">🧛</button>
+                    <button class="theme-btn" data-theme="forest">🌲</button>
+                    <button class="theme-btn" data-theme="ocean">🌊</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-navigation" id="tabNavigation">
+            <button class="tab-btn active" data-tab="tasks" data-bn="✅ টাস্ক" data-en="✅ Tasks">✅ টাস্ক</button>
+            <button class="tab-btn" data-tab="goals" data-bn="🎯 লক্ষ্য" data-en="🎯 Goals">🎯 লক্ষ্য</button>
+            <button class="tab-btn" data-tab="journal" data-bn="📔 জার্নাল" data-en="📔 Journal">📔 জার্নাল</button>
+            <button class="tab-btn" data-tab="calendar" data-bn="📅 ক্যালেন্ডার" data-en="📅 Calendar">📅 ক্যালেন্ডার</button>
+            <button class="tab-btn" data-tab="habits" data-bn="🔄 অভ্যাস" data-en="🔄 Habits">🔄 অভ্যাস</button>
+            <button class="tab-btn" data-tab="analytics" data-bn="📊 বিশ্লেষণ" data-en="📊 Analytics">📊 বিশ্লেষণ</button>
+            <button class="tab-btn" data-tab="pomodoro" data-bn="⏱️ পোমোডোরো" data-en="⏱️ Pomodoro">⏱️ পোমোডোরো</button>
+        </div>
+
+        <!-- Tasks Tab -->
+        <div class="tab-content active" id="tasksTab">
+            <div class="main-section">
+                <h2 data-bn="📝 টাস্ক ম্যানেজমেন্ট" data-en="📝 Task Management">📝 টাস্ক ম্যানেজমেন্ট</h2>
+                <p style="color: var(--text-light); margin-bottom: 20px;" data-bn="আপনার দৈনন্দিন কাজগুলো সাজিয়ে রাখুন" data-en="Organize your daily tasks">আপনার দৈনন্দিন কাজগুলো সাজিয়ে রাখুন</p>
+                
+                <div class="quick-actions">
+                    <button class="quick-action-btn" data-template="Meeting preparation" data-bn="📋 মিটিং প্রস্তুতি" data-en="📋 Meeting Prep">📋 মিটিং প্রস্তুতি</button>
+                    <button class="quick-action-btn" data-template="Email check" data-bn="📧 ইমেইল চেক" data-en="📧 Email Check">📧 ইমেইল চেক</button>
+                    <button class="quick-action-btn" data-template="Exercise" data-bn="🏃 ব্যায়াম" data-en="🏃 Exercise">🏃 ব্যায়াম</button>
+                    <button class="quick-action-btn" id="taskTemplateBtn" data-bn="📄 টেমপ্লেট" data-en="📄 Template">📄 টেমপ্লেট</button>
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" id="taskInput" data-bn-placeholder="নতুন টাস্ক যোগ করুন..." data-en-placeholder="Add new task...">
+                    <select id="prioritySelect">
+                        <option value="medium" data-bn="মাঝারি অগ্রাধিকার" data-en="Medium Priority">মাঝারি অগ্রাধিকার</option>
+                        <option value="high" data-bn="উচ্চ অগ্রাধিকার" data-en="High Priority">উচ্চ অগ্রাধিকার</option>
+                        <option value="low" data-bn="কম অগ্রাধিকার" data-en="Low Priority">কম অগ্রাধিকার</option>
+                    </select>
+                    <select id="projectSelect">
+                        <option value="" data-bn="প্রজেক্ট" data-en="Project">প্রজেক্ট</option>
+                        <option value="work" data-bn="কাজ" data-en="Work">কাজ</option>
+                        <option value="personal" data-bn="ব্যক্তিগত" data-en="Personal">ব্যক্তিগত</option>
+                        <option value="health" data-bn="স্বাস্থ্য" data-en="Health">স্বাস্থ্য</option>
+                        <option value="learning" data-bn="শিক্ষা" data-en="Learning">শিক্ষা</option>
+                    </select>
+                    <input type="datetime-local" id="dueDateInput">
+                    <button class="btn btn-primary" id="addTaskBtn" data-bn="➕ যোগ করুন" data-en="➕ Add">➕ যোগ করুন</button>
+                </div>
+
+                <div>
+                    <input type="text" id="taskSearch" data-bn-placeholder="🔍 টাস্ক সার্চ করুন..." data-en-placeholder="🔍 Search tasks..." style="width: 100%; margin-bottom: 15px;">
+                </div>
+
+                <div class="filters" id="taskFilters">
+                    <button class="filter-btn active" data-filter="all" data-bn="সব" data-en="All">সব</button>
+                    <button class="filter-btn" data-filter="active" data-bn="চলমান" data-en="Active">চলমান</button>
+                    <button class="filter-btn" data-filter="completed" data-bn="সম্পন্ন" data-en="Completed">সম্পন্ন</button>
+                    <button class="filter-btn" data-filter="overdue" data-bn="⏰ সময় শেষ" data-en="⏰ Overdue">⏰ সময় শেষ</button>
+                    <button class="filter-btn" data-filter="work" data-bn="কাজ" data-en="Work">কাজ</button>
+                    <button class="filter-btn" data-filter="personal" data-bn="ব্যক্তিগত" data-en="Personal">ব্যক্তিগত</button>
+                    <button class="filter-btn" data-filter="health" data-bn="স্বাস্থ্য" data-en="Health">স্বাস্থ্য</button>
+                    <button class="filter-btn" data-filter="learning" data-bn="শিক্ষা" data-en="Learning">শিক্ষা</button>
+                </div>
+
+                <ul class="item-list" id="taskList"></ul>
+
+                <div style="display: flex; justify-content: space-between; margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--border); flex-wrap: wrap; gap: 10px;">
+                    <span id="totalTasks" data-bn="মোট: 0 টাস্ক" data-en="Total: 0 Tasks">মোট: 0 টাস্ক</span>
+                    <span id="completedTasks" data-bn="সম্পন্ন: 0" data-en="Completed: 0">সম্পন্ন: 0</span>
+                    <span id="overdueTasks" data-bn="⚠️ সময় শেষ: 0" data-en="⚠️ Overdue: 0">⚠️ সময় শেষ: 0</span>
+                    <button class="btn btn-outline" id="qrShareBtn" data-bn="📱 QR শেয়ার" data-en="📱 QR Share">📱 QR শেয়ার</button>
+                </div>
+            </div>
+
+            <div class="side-panel">
+                <div class="panel-card">
+                    <h3 data-bn="📊 বিশ্লেষণ" data-en="📊 Analytics">📊 বিশ্লেষণ</h3>
+                    <div class="progress-bar" style="margin: 20px 0;">
+                        <div class="progress-fill" id="taskProgress" style="width: 0%">0%</div>
+                    </div>
+                    <div class="goal-stats">
+                        <div class="stat-box">
+                            <div class="stat-number" id="todayCompleted">0</div>
+                            <div class="stat-label" data-bn="আজ সম্পন্ন" data-en="Today Done">আজ সম্পন্ন</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="bestDay">-</div>
+                            <div class="stat-label" data-bn="সেরা দিন" data-en="Best Day">সেরা দিন</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="avgCompletion">0m</div>
+                            <div class="stat-label" data-bn="গড় সময়" data-en="Avg Time">গড় সময়</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="productivityScore">0</div>
+                            <div class="stat-label" data-bn="প্রোডাক্টিভিটি" data-en="Productivity">প্রোডাক্টিভিটি</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <h3 data-bn="🤖 AI সহকারী" data-en="🤖 AI Assistant">🤖 AI সহকারী</h3>
+                    <div class="chat-messages" id="taskChatMessages">
+                        <div class="chat-message">
+                            <div class="assistant-msg" data-bn="হ্যালো! আমি আপনার AI সহকারী। আমি সাহায্য করতে পারি:<br>• টাস্ক যোগ ও পরিচালনা<br>• অগ্রগতি বিশ্লেষণ<br>• স্মার্ট পরামর্শ<br>• টাস্ক ব্রেকডাউন" data-en="Hello! I'm your AI assistant. I can help with:<br>• Add & manage tasks<br>• Progress analysis<br>• Smart suggestions<br>• Task breakdown">
+                                হ্যালো! আমি আপনার AI সহকারী। আমি সাহায্য করতে পারি:<br>
+                                • টাস্ক যোগ ও পরিচালনা<br>
+                                • অগ্রগতি বিশ্লেষণ<br>
+                                • স্মার্ট পরামর্শ<br>
+                                • টাস্ক ব্রেকডাউন
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-group">
+                        <input type="text" id="taskChatInput" data-bn-placeholder="আপনার টাস্ক সম্পর্কে জিজ্ঞাসা করুন..." data-en-placeholder="Ask about your tasks...">
+                        <button class="btn btn-primary" id="sendTaskChatBtn" data-bn="পাঠান" data-en="Send">📤</button>
+                    </div>
+                    <div class="chip-container" id="taskChips">
+                        <span class="chip" data-msg="progress" data-bn="📈 অগ্রগতি" data-en="📈 Progress">📈 অগ্রগতি</span>
+                        <span class="chip" data-msg="summary" data-bn="📋 আজকের সারাংশ" data-en="📋 Today Summary">📋 আজকের সারাংশ</span>
+                        <span class="chip" data-msg="tips" data-bn="💡 পরামর্শ" data-en="💡 Tips">💡 পরামর্শ</span>
+                        <span class="chip" data-msg="breakdown" data-bn="🔨 ব্রেকডাউন" data-en="🔨 Breakdown">🔨 ব্রেকডাউন</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Goals Tab -->
+        <div class="tab-content" id="goalsTab">
+            <div class="main-section">
+                <h2 data-bn="🎯 লক্ষ্য নির্ধারণ" data-en="🎯 Goal Setting">🎯 লক্ষ্য নির্ধারণ</h2>
+                <p style="color: var(--text-light); margin-bottom: 20px;" data-bn="দীর্ঘমেয়াদী লক্ষ্য নির্ধারণ ও ট্র্যাক করুন" data-en="Set and track your long-term goals">দীর্ঘমেয়াদী লক্ষ্য নির্ধারণ ও ট্র্যাক করুন</p>
+                
+                <div class="input-group">
+                    <input type="text" id="goalInput" data-bn-placeholder="নতুন লক্ষ্য যোগ করুন..." data-en-placeholder="Add new goal...">
+                    <select id="goalCategory">
+                        <option value="personal" data-bn="ব্যক্তিগত" data-en="Personal">ব্যক্তিগত</option>
+                        <option value="work" data-bn="কাজ" data-en="Work">কাজ</option>
+                        <option value="health" data-bn="স্বাস্থ্য" data-en="Health">স্বাস্থ্য</option>
+                        <option value="learning" data-bn="শিক্ষা" data-en="Learning">শিক্ষা</option>
+                        <option value="finance" data-bn="আর্থিক" data-en="Finance">আর্থিক</option>
+                    </select>
+                    <input type="date" id="goalDeadline">
+                    <button class="btn btn-primary" id="addGoalBtn" data-bn="➕ লক্ষ্য যোগ করুন" data-en="➕ Add Goal">➕ লক্ষ্য যোগ করুন</button>
+                </div>
+
+                <div class="filters" id="goalFilters">
+                    <button class="filter-btn active" data-filter="all" data-bn="সব লক্ষ্য" data-en="All Goals">সব লক্ষ্য</button>
+                    <button class="filter-btn" data-filter="active" data-bn="চলমান" data-en="Active">চলমান</button>
+                    <button class="filter-btn" data-filter="completed" data-bn="অর্জিত" data-en="Achieved">অর্জিত</button>
+                    <button class="filter-btn" data-filter="personal" data-bn="ব্যক্তিগত" data-en="Personal">ব্যক্তিগত</button>
+                    <button class="filter-btn" data-filter="work" data-bn="কাজ" data-en="Work">কাজ</button>
+                </div>
+
+                <ul class="item-list" id="goalList"></ul>
+            </div>
+
+            <div class="side-panel">
+                <div class="panel-card">
+                    <h3 data-bn="📈 লক্ষ্যের অগ্রগতি" data-en="📈 Goal Progress">📈 লক্ষ্যের অগ্রগতি</h3>
+                    <div class="goal-stats">
+                        <div class="stat-box">
+                            <div class="stat-number" id="totalGoals">0</div>
+                            <div class="stat-label" data-bn="মোট লক্ষ্য" data-en="Total Goals">মোট লক্ষ্য</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="achievedGoals">0</div>
+                            <div class="stat-label" data-bn="অর্জিত" data-en="Achieved">অর্জিত</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="goalCompletion">0%</div>
+                            <div class="stat-label" data-bn="সম্পূর্ণতা হার" data-en="Completion Rate">সম্পূর্ণতা হার</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="activeGoals">0</div>
+                            <div class="stat-label" data-bn="চলমান" data-en="Active">চলমান</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline" style="width: 100%; margin-top: 15px;" id="goalTemplateBtn" data-bn="📄 SMART টেমপ্লেট" data-en="📄 SMART Template">📄 SMART টেমপ্লেট</button>
+                </div>
+
+                <div class="panel-card">
+                    <h3 data-bn="🤖 লক্ষ্য সহকারী" data-en="🤖 Goal Assistant">🤖 লক্ষ্য সহকারী</h3>
+                    <div class="chat-messages" id="goalChatMessages">
+                        <div class="chat-message">
+                            <div class="assistant-msg" data-bn="আমি আপনার লক্ষ্য নির্ধারণে সাহায্য করতে পারি:<br>• SMART লক্ষ্য তৈরি<br>• মাইলস্টোন ট্র্যাকিং<br>• অগ্রগতি বিশ্লেষণ" data-en="I can help with your goals:<br>• Create SMART goals<br>• Milestone tracking<br>• Progress analysis">
+                                আমি আপনার লক্ষ্য নির্ধারণে সাহায্য করতে পারি:<br>
+                                • SMART লক্ষ্য তৈরি<br>
+                                • মাইলস্টোন ট্র্যাকিং<br>
+                                • অগ্রগতি বিশ্লেষণ
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-group">
+                        <input type="text" id="goalChatInput" data-bn-placeholder="লক্ষ্য সম্পর্কে জিজ্ঞাসা করুন..." data-en-placeholder="Ask about goals...">
+                        <button class="btn btn-primary" id="sendGoalChatBtn" data-bn="পাঠান" data-en="Send">📤</button>
+                    </div>
+                    <div class="chip-container" id="goalChips">
+                        <span class="chip" data-msg="smart" data-bn="🎯 SMART" data-en="🎯 SMART">🎯 SMART</span>
+                        <span class="chip" data-msg="progress" data-bn="📈 অগ্রগতি" data-en="📈 Progress">📈 অগ্রগতি</span>
+                        <span class="chip" data-msg="tips" data-bn="💡 টিপস" data-en="💡 Tips">💡 টিপস</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Journal Tab -->
+        <div class="tab-content" id="journalTab">
+            <div class="main-section">
+                <h2 data-bn="📔 ব্যক্তিগত জার্নাল" data-en="📔 Personal Journal">📔 ব্যক্তিগত জার্নাল</h2>
+                <p style="color: var(--text-light); margin-bottom: 20px;" data-bn="আপনার চিন্তা, অনুভূতি ও অভিজ্ঞতা লিখে রাখুন" data-en="Record your thoughts, feelings and experiences">আপনার চিন্তা, অনুভূতি ও অভিজ্ঞতা লিখে রাখুন</p>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="font-weight: 600; margin-bottom: 10px; display: block;" data-bn="আজকের তারিখ" data-en="Today's Date">আজকের তারিখ</label>
+                    <input type="date" id="journalDate" style="width: 100%; margin-bottom: 15px;">
+                    
+                    <label style="font-weight: 600; margin-bottom: 10px; display: block;" data-bn="আজকের মুড" data-en="Today's Mood">আজকের মুড</label>
+                    <div class="mood-selector" id="moodSelector">
+                        <button class="mood-btn" data-mood="😊">😊</button>
+                        <button class="mood-btn" data-mood="😃">😃</button>
+                        <button class="mood-btn" data-mood="😐">😐</button>
+                        <button class="mood-btn" data-mood="😔">😔</button>
+                        <button class="mood-btn" data-mood="😤">😤</button>
+                        <button class="mood-btn" data-mood="🤩">🤩</button>
+                        <button class="mood-btn" data-mood="😴">😴</button>
+                    </div>
+                    
+                    <label style="font-weight: 600; margin: 15px 0 10px; display: block;" data-bn="শিরোনাম" data-en="Title">শিরোনাম</label>
+                    <input type="text" id="journalTitle" data-bn-placeholder="আজকের জার্নালের শিরোনাম..." data-en-placeholder="Journal title..." style="width: 100%; margin-bottom: 15px;">
+                    
+                    <label style="font-weight: 600; margin-bottom: 10px; display: block;" data-bn="আজকের লেখা" data-en="Today's Entry">আজকের লেখা</label>
+                    <textarea id="journalContent" data-bn-placeholder="আপনার চিন্তা, অনুভূতি, অভিজ্ঞতা লিখুন..." data-en-placeholder="Write your thoughts, feelings, experiences..." style="width: 100%; min-height: 200px; margin-bottom: 15px;"></textarea>
+                    
+                    <label style="font-weight: 600; margin-bottom: 10px; display: block;" data-bn="কৃতজ্ঞতা" data-en="Gratitude">কৃতজ্ঞতা</label>
+                    <textarea id="gratitudeContent" data-bn-placeholder="আজ আমি কৃতজ্ঞ..." data-en-placeholder="Today I'm grateful for..." style="width: 100%; min-height: 80px; margin-bottom: 15px;"></textarea>
+                    
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-primary" id="saveJournalBtn" data-bn="💾 সংরক্ষণ করুন" data-en="💾 Save">💾 সংরক্ষণ করুন</button>
+                        <button class="btn btn-outline" id="journalTemplateBtn" data-bn="📄 টেমপ্লেট" data-en="📄 Template">📄 টেমপ্লেট</button>
+                    </div>
+                </div>
+
+                <h3 style="margin: 30px 0 20px;" data-bn="📚 পূর্ববর্তী জার্নাল" data-en="📚 Previous Journals">📚 পূর্ববর্তী জার্নাল</h3>
+                <div class="filters" id="journalFilters">
+                    <button class="filter-btn active" data-filter="all" data-bn="সব" data-en="All">সব</button>
+                    <button class="filter-btn" data-filter="week" data-bn="এই সপ্তাহ" data-en="This Week">এই সপ্তাহ</button>
+                    <button class="filter-btn" data-filter="month" data-bn="এই মাস" data-en="This Month">এই মাস</button>
+                </div>
+                <div id="journalEntries"></div>
+            </div>
+
+            <div class="side-panel">
+                <div class="panel-card">
+                    <h3 data-bn="📊 জার্নাল পরিসংখ্যান" data-en="📊 Journal Stats">📊 জার্নাল পরিসংখ্যান</h3>
+                    <div class="goal-stats">
+                        <div class="stat-box">
+                            <div class="stat-number" id="totalJournals">0</div>
+                            <div class="stat-label" data-bn="মোট জার্নাল" data-en="Total Journals">মোট জার্নাল</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="journalStreak">0</div>
+                            <div class="stat-label" data-bn="ধারাবাহিক দিন" data-en="Day Streak">ধারাবাহিক দিন</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="commonMood">-</div>
+                            <div class="stat-label" data-bn="সাধারণ মুড" data-en="Common Mood">সাধারণ মুড</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="thisMonthJournals">0</div>
+                            <div class="stat-label" data-bn="এই মাসে" data-en="This Month">এই মাসে</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <h3 data-bn="🤖 জার্নাল সহকারী" data-en="🤖 Journal Assistant">🤖 জার্নাল সহকারী</h3>
+                    <div class="chat-messages" id="journalChatMessages">
+                        <div class="chat-message">
+                            <div class="assistant-msg" data-bn="জার্নাল লেখার জন্য পরামর্শ:<br>• আজকের সেরা মুহূর্ত<br>• কী শিখলেন<br>• আগামীকালের পরিকল্পনা" data-en="Journal writing tips:<br>• Best moment today<br>• What you learned<br>• Tomorrow's plan">
+                                জার্নাল লেখার জন্য পরামর্শ:<br>
+                                • আজকের সেরা মুহূর্ত<br>
+                                • কী শিখলেন<br>
+                                • আগামীকালের পরিকল্পনা
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-group">
+                        <input type="text" id="journalChatInput" data-bn-placeholder="জিজ্ঞাসা করুন..." data-en-placeholder="Ask something...">
+                        <button class="btn btn-primary" id="sendJournalChatBtn" data-bn="পাঠান" data-en="Send">📤</button>
+                    </div>
+                    <div class="chip-container" id="journalChips">
+                        <span class="chip" data-msg="prompt" data-bn="✍️ প্রম্পট" data-en="✍️ Prompt">✍️ প্রম্পট</span>
+                        <span class="chip" data-msg="mood" data-bn="📊 বিশ্লেষণ" data-en="📊 Analysis">📊 বিশ্লেষণ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Tab -->
+        <div class="tab-content" id="calendarTab">
+            <div class="main-section" style="grid-column: 1 / -1;">
+                <h2 data-bn="📅 ক্যালেন্ডার ভিউ" data-en="📅 Calendar View">📅 ক্যালেন্ডার ভিউ</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <button class="btn btn-outline" id="prevMonthBtn" data-bn="⬅️ আগের মাস" data-en="⬅️ Previous">⬅️ আগের মাস</button>
+                    <h3 id="calendarMonthTitle"></h3>
+                    <button class="btn btn-outline" id="nextMonthBtn" data-bn="পরের মাস ➡️" data-en="Next ➡️">পরের মাস ➡️</button>
+                    <button class="btn btn-primary" id="todayBtn" data-bn="আজ" data-en="Today">আজ</button>
+                </div>
+                <div class="calendar-view" id="calendarView"></div>
+                <div id="selectedDateTasks" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <!-- Habits Tab -->
+        <div class="tab-content" id="habitsTab">
+            <div class="main-section">
+                <h2 data-bn="🔄 অভ্যাস ট্র্যাকার" data-en="🔄 Habit Tracker">🔄 অভ্যাস ট্র্যাকার</h2>
+                <p style="color: var(--text-light); margin-bottom: 20px;" data-bn="দৈনিক ভালো অভ্যাস গড়ে তুলুন" data-en="Build good daily habits">দৈনিক ভালো অভ্যাস গড়ে তুলুন</p>
+                
+                <div class="input-group">
+                    <input type="text" id="habitInput" data-bn-placeholder="নতুন অভ্যাস..." data-en-placeholder="New habit...">
+                    <select id="habitFrequency">
+                        <option value="daily" data-bn="দৈনিক" data-en="Daily">দৈনিক</option>
+                        <option value="weekly" data-bn="সাপ্তাহিক" data-en="Weekly">সাপ্তাহিক</option>
+                        <option value="monthly" data-bn="মাসিক" data-en="Monthly">মাসিক</option>
+                    </select>
+                    <button class="btn btn-primary" id="addHabitBtn" data-bn="➕ যোগ করুন" data-en="➕ Add">➕ যোগ করুন</button>
+                </div>
+
+                <ul class="item-list" id="habitList"></ul>
+            </div>
+
+            <div class="side-panel">
+                <div class="panel-card">
+                    <h3 data-bn="📊 অভ্যাস পরিসংখ্যান" data-en="📊 Habit Stats">📊 অভ্যাস পরিসংখ্যান</h3>
+                    <div class="goal-stats">
+                        <div class="stat-box">
+                            <div class="stat-number" id="totalHabits">0</div>
+                            <div class="stat-label" data-bn="মোট অভ্যাস" data-en="Total Habits">মোট অভ্যাস</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="habitStreak">0</div>
+                            <div class="stat-label" data-bn="সেরা স্ট্রিক" data-en="Best Streak">সেরা স্ট্রিক</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="todayHabits">0</div>
+                            <div class="stat-label" data-bn="আজ সম্পন্ন" data-en="Done Today">আজ সম্পন্ন</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="habitCompletion">0%</div>
+                            <div class="stat-label" data-bn="হার" data-en="Rate">হার</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <h3 data-bn="🏆 অর্জন" data-en="🏆 Achievements">🏆 অর্জন</h3>
+                    <div id="achievementList" style="display: flex; flex-wrap: wrap; gap: 5px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div class="tab-content" id="analyticsTab">
+            <div class="main-section" style="grid-column: 1 / -1;">
+                <h2 data-bn="📊 বিশ্লেষণ ড্যাশবোর্ড" data-en="📊 Analytics Dashboard">📊 বিশ্লেষণ ড্যাশবোর্ড</h2>
+                
+                <div class="goal-stats" style="grid-template-columns: repeat(4, 1fr);">
+                    <div class="stat-box">
+                        <div class="stat-number" id="analyticsTotalTasks">0</div>
+                        <div class="stat-label" data-bn="মোট টাস্ক" data-en="Total Tasks">মোট টাস্ক</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="analyticsCompleted">0</div>
+                        <div class="stat-label" data-bn="সম্পন্ন" data-en="Completed">সম্পন্ন</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="analyticsStreak">0</div>
+                        <div class="stat-label" data-bn="স্ট্রিক" data-en="Streak">স্ট্রিক</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="analyticsXp">0</div>
+                        <div class="stat-label" data-bn="XP পয়েন্ট" data-en="XP Points">XP পয়েন্ট</div>
+                    </div>
+                </div>
+
+                <h3 style="margin: 30px 0 15px;" data-bn="📈 সাপ্তাহিক প্রোডাক্টিভিটি" data-en="📈 Weekly Productivity">📈 সাপ্তাহিক প্রোডাক্টিভিটি</h3>
+                <div class="bar-chart" id="weeklyChart"></div>
+
+                <h3 style="margin: 30px 0 15px;" data-bn="🎯 ক্যাটাগরি অনুযায়ী" data-en="🎯 By Category">🎯 ক্যাটাগরি অনুযায়ী</h3>
+                <div class="bar-chart" id="categoryChart"></div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" id="weeklyReportBtn" data-bn="📄 সাপ্তাহিক রিপোর্ট" data-en="📄 Weekly Report">📄 সাপ্তাহিক রিপোর্ট</button>
+                    <button class="btn btn-primary" id="monthlyReportBtn" data-bn="📄 মাসিক রিপোর্ট" data-en="📄 Monthly Report">📄 মাসিক রিপোর্ট</button>
+                    <button class="btn btn-outline" id="exportDataBtn" data-bn="💾 এক্সপোর্ট" data-en="💾 Export">💾 এক্সপোর্ট</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pomodoro Tab -->
+        <div class="tab-content" id="pomodoroTab">
+            <div class="main-section" style="grid-column: 1 / -1; text-align: center;">
+                <h2 data-bn="⏱️ পোমোডোরো টাইমার" data-en="⏱️ Pomodoro Timer">⏱️ পোমোডোরো টাইমার</h2>
+                
+                <div class="pomodoro-container">
+                    <div class="pomodoro-status" id="pomodoroStatus" data-bn="প্রস্তুত" data-en="Ready">প্রস্তুত</div>
+                    <div class="pomodoro-timer" id="pomodoroTimer">25:00</div>
+                    <div class="pomodoro-sessions" id="pomodoroSessions"></div>
+                    
+                    <div class="pomodoro-controls">
+                        <button class="btn btn-primary" id="pomodoroStartBtn" data-bn="▶️ শুরু" data-en="▶️ Start">▶️ শুরু</button>
+                        <button class="btn btn-warning" id="pomodoroPauseBtn" style="display:none;" data-bn="⏸️ বিরতি" data-en="⏸️ Pause">⏸️ বিরতি</button>
+                        <button class="btn btn-danger" id="pomodoroResetBtn" data-bn="🔄 রিসেট" data-en="🔄 Reset">🔄 রিসেট</button>
+                        <button class="btn btn-outline" id="pomodoroSkipBtn" data-bn="⏭️ স্কিপ" data-en="⏭️ Skip">⏭️ স্কিপ</button>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <label data-bn="সেশন:" data-en="Session:">সেশন:</label>
+                        <select id="pomodoroSessionType">
+                            <option value="work" data-bn="কাজ (২৫ মিনিট)" data-en="Work (25 min)">কাজ (২৫ মিনিট)</option>
+                            <option value="shortBreak" data-bn="ছোট বিরতি (৫ মিনিট)" data-en="Short Break (5 min)">ছোট বিরতি (৫ মিনিট)</option>
+                            <option value="longBreak" data-bn="বড় বিরতি (১৫ মিনিট)" data-en="Long Break (15 min)">বড় বিরতি (১৫ মিনিট)</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <span id="pomodoroCount" data-bn="আজকের সেশন: 0" data-en="Today's Sessions: 0">আজকের সেশন: 0</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <h3 data-bn="লিংকড টাস্ক" data-en="Linked Task">লিংকড টাস্ক</h3>
+                    <select id="pomodoroTaskLink" style="width: 100%;">
+                        <option value="" data-bn="টাস্ক সিলেক্ট করুন..." data-en="Select task...">টাস্ক সিলেক্ট করুন...</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== TRANSLATION DATA =====
+        const translations = {
+            bn: {
+                appTitle: 'স্মার্ট টাস্ক ম্যানেজার প্রো',
+                days: 'দিন',
+                level: 'লেভেল',
+                focus: 'ফোকাস',
+                export: 'এক্সপোর্ট',
+                settings: 'সেটিংস',
+                tasksTab: '✅ টাস্ক',
+                goalsTab: '🎯 লক্ষ্য',
+                journalTab: '📔 জার্নাল',
+                calendarTab: '📅 ক্যালেন্ডার',
+                habitsTab: '🔄 অভ্যাস',
+                analyticsTab: '📊 বিশ্লেষণ',
+                pomodoroTab: '⏱️ পোমোডোরো',
+                taskManagement: '📝 টাস্ক ম্যানেজমেন্ট',
+                taskDesc: 'আপনার দৈনন্দিন কাজগুলো সাজিয়ে রাখুন',
+                meetingPrep: '📋 মিটিং প্রস্তুতি',
+                emailCheck: '📧 ইমেইল চেক',
+                exercise: '🏃 ব্যায়াম',
+                template: '📄 টেমপ্লেট',
+                addTask: '➕ যোগ করুন',
+                searchTasks: '🔍 টাস্ক সার্চ করুন...',
+                all: 'সব',
+                active: 'চলমান',
+                completed: 'সম্পন্ন',
+                overdue: '⏰ সময় শেষ',
+                work: 'কাজ',
+                personal: 'ব্যক্তিগত',
+                health: 'স্বাস্থ্য',
+                learning: 'শিক্ষা',
+                totalTasks: 'মোট: TASKS টাস্ক',
+                completedTasks: 'সম্পন্ন: COMPLETED',
+                overdueTasks: '⚠️ সময় শেষ: OVERDUE',
+                qrShare: '📱 QR শেয়ার',
+                analytics: '📊 বিশ্লেষণ',
+                todayDone: 'আজ সম্পন্ন',
+                bestDay: 'সেরা দিন',
+                avgTime: 'গড় সময়',
+                productivity: 'প্রোডাক্টিভিটি',
+                aiAssistant: '🤖 AI সহকারী',
+                aiWelcomeTask: 'হ্যালো! আমি আপনার AI সহকারী। আমি সাহায্য করতে পারি:<br>• টাস্ক যোগ ও পরিচালনা<br>• অগ্রগতি বিশ্লেষণ<br>• স্মার্ট পরামর্শ<br>• টাস্ক ব্রেকডাউন',
+                progress: '📈 অগ্রগতি',
+                todaySummary: '📋 আজকের সারাংশ',
+                tips: '💡 পরামর্শ',
+                breakdown: '🔨 ব্রেকডাউন',
+                send: 'পাঠান',
+                goalSetting: '🎯 লক্ষ্য নির্ধারণ',
+                goalDesc: 'দীর্ঘমেয়াদী লক্ষ্য নির্ধারণ ও ট্র্যাক করুন',
+                addGoal: '➕ লক্ষ্য যোগ করুন',
+                allGoals: 'সব লক্ষ্য',
+                achieved: 'অর্জিত',
+                totalGoals: 'মোট লক্ষ্য',
+                achievedGoals: 'অর্জিত',
+                completionRate: 'সম্পূর্ণতা হার',
+                activeGoals: 'চলমান',
+                goalProgress: '📈 লক্ষ্যের অগ্রগতি',
+                smartTemplate: '📄 SMART টেমপ্লেট',
+                goalAssistant: '🤖 লক্ষ্য সহকারী',
+                aiWelcomeGoal: 'আমি আপনার লক্ষ্য নির্ধারণে সাহায্য করতে পারি:<br>• SMART লক্ষ্য তৈরি<br>• মাইলস্টোন ট্র্যাকিং<br>• অগ্রগতি বিশ্লেষণ',
+                smart: '🎯 SMART',
+                personalJournal: '📔 ব্যক্তিগত জার্নাল',
+                journalDesc: 'আপনার চিন্তা, অনুভূতি ও অভিজ্ঞতা লিখে রাখুন',
+                todayDate: 'আজকের তারিখ',
+                todayMood: 'আজকের মুড',
+                title: 'শিরোনাম',
+                todayEntry: 'আজকের লেখা',
+                gratitude: 'কৃতজ্ঞতা',
+                save: '💾 সংরক্ষণ করুন',
+                previousJournals: '📚 পূর্ববর্তী জার্নাল',
+                thisWeek: 'এই সপ্তাহ',
+                thisMonth: 'এই মাস',
+                journalStats: '📊 জার্নাল পরিসংখ্যান',
+                totalJournals: 'মোট জার্নাল',
+                dayStreak: 'ধারাবাহিক দিন',
+                commonMood: 'সাধারণ মুড',
+                journalAssistant: '🤖 জার্নাল সহকারী',
+                aiWelcomeJournal: 'জার্নাল লেখার জন্য পরামর্শ:<br>• আজকের সেরা মুহূর্ত<br>• কী শিখলেন<br>• আগামীকালের পরিকল্পনা',
+                prompt: '✍️ প্রম্পট',
+                analysis: '📊 বিশ্লেষণ',
+                calendarView: '📅 ক্যালেন্ডার ভিউ',
+                previousMonth: '⬅️ আগের মাস',
+                nextMonth: 'পরের মাস ➡️',
+                today: 'আজ',
+                habitTracker: '🔄 অভ্যাস ট্র্যাকার',
+                habitDesc: 'দৈনিক ভালো অভ্যাস গড়ে তুলুন',
+                daily: 'দৈনিক',
+                weekly: 'সাপ্তাহিক',
+                monthly: 'মাসিক',
+                habitStats: '📊 অভ্যাস পরিসংখ্যান',
+                totalHabits: 'মোট অভ্যাস',
+                bestStreak: 'সেরা স্ট্রিক',
+                doneToday: 'আজ সম্পন্ন',
+                rate: 'হার',
+                achievements: '🏆 অর্জন',
+                analyticsDashboard: '📊 বিশ্লেষণ ড্যাশবোর্ড',
+                totalTasksAnalytics: 'মোট টাস্ক',
+                streak: 'স্ট্রিক',
+                xpPoints: 'XP পয়েন্ট',
+                weeklyProductivity: '📈 সাপ্তাহিক প্রোডাক্টিভিটি',
+                byCategory: '🎯 ক্যাটাগরি অনুযায়ী',
+                weeklyReport: '📄 সাপ্তাহিক রিপোর্ট',
+                monthlyReport: '📄 মাসিক রিপোর্ট',
+                pomodoroTimer: '⏱️ পোমোডোরো টাইমার',
+                ready: 'প্রস্তুত',
+                start: '▶️ শুরু',
+                pause: '⏸️ বিরতি',
+                reset: '🔄 রিসেট',
+                skip: '⏭️ স্কিপ',
+                session: 'সেশন:',
+                work25: 'কাজ (২৫ মিনিট)',
+                shortBreak5: 'ছোট বিরতি (৫ মিনিট)',
+                longBreak15: 'বড় বিরতি (১৫ মিনিট)',
+                todaySessions: 'আজকের সেশন: SESSIONS',
+                linkedTask: 'লিংকড টাস্ক',
+                selectTask: 'টাস্ক সিলেক্ট করুন...',
+                noTasks: 'কোনো টাস্ক নেই',
+                noGoals: 'কোনো লক্ষ্য নেই',
+                noJournals: 'কোনো জার্নাল নেই',
+                noHabits: 'কোনো অভ্যাস নেই',
+                delete: 'মুছুন',
+                confirmDelete: 'মুছে ফেলবেন?',
+                high: 'উচ্চ',
+                medium: 'মাঝারি',
+                low: 'কম',
+                taskAdded: 'টাস্ক যোগ করা হয়েছে! +5 XP',
+                taskCompleted: 'টাস্ক সম্পন্ন! +10 XP 🎉',
+                taskDeleted: 'টাস্ক মুছে ফেলা হয়েছে',
+                goalAdded: 'লক্ষ্য যোগ করা হয়েছে! +10 XP',
+                goalAchieved: '🎉 লক্ষ্য অর্জিত! +50 XP',
+                journalSaved: 'জার্নাল সংরক্ষিত! +15 XP',
+                habitAdded: 'অভ্যাস যোগ করা হয়েছে!',
+                pomodoroComplete: '🍅 পোমোডোরো সেশন সম্পন্ন! +5 XP',
+                dataExported: 'ডাটা এক্সপোর্ট সম্পন্ন!',
+                dataImported: 'ডাটা ইম্পোর্ট সম্পন্ন!',
+                dataCleared: 'সমস্ত ডাটা মুছে ফেলা হয়েছে',
+                focusOn: 'ফোকাস মোড চালু',
+                focusOff: 'ফোকাস মোড বন্ধ',
+                themeChanged: 'থিম পরিবর্তন করা হয়েছে',
+                achievementUnlock: '🏆 অর্জন আনলক: NAME!',
+                reminder: '⏰ রিমাইন্ডার: "TASK" - ৩০ মিনিট বাকি!',
+                fillRequired: 'শিরোনাম এবং লেখা পূরণ করুন',
+                importFailed: 'ইম্পোর্ট ব্যর্থ! ফাইল ফরম্যাট সঠিক নয়।',
+                storageError: 'ডাটা সংরক্ষণে সমস্যা! স্টোরেজ ফুল হতে পারে।'
+            },
+            en: {
+                appTitle: 'Smart Task Manager Pro',
+                days: 'days',
+                level: 'Level',
+                focus: 'Focus',
+                export: 'Export',
+                settings: 'Settings',
+                tasksTab: '✅ Tasks',
+                goalsTab: '🎯 Goals',
+                journalTab: '📔 Journal',
+                calendarTab: '📅 Calendar',
+                habitsTab: '🔄 Habits',
+                analyticsTab: '📊 Analytics',
+                pomodoroTab: '⏱️ Pomodoro',
+                taskManagement: '📝 Task Management',
+                taskDesc: 'Organize your daily tasks',
+                meetingPrep: '📋 Meeting Prep',
+                emailCheck: '📧 Email Check',
+                exercise: '🏃 Exercise',
+                template: '📄 Template',
+                addTask: '➕ Add',
+                searchTasks: '🔍 Search tasks...',
+                all: 'All',
+                active: 'Active',
+                completed: 'Completed',
+                overdue: '⏰ Overdue',
+                work: 'Work',
+                personal: 'Personal',
+                health: 'Health',
+                learning: 'Learning',
+                totalTasks: 'Total: TASKS Tasks',
+                completedTasks: 'Completed: COMPLETED',
+                overdueTasks: '⚠️ Overdue: OVERDUE',
+                qrShare: '📱 QR Share',
+                analytics: '📊 Analytics',
+                todayDone: 'Today Done',
+                bestDay: 'Best Day',
+                avgTime: 'Avg Time',
+                productivity: 'Productivity',
+                aiAssistant: '🤖 AI Assistant',
+                aiWelcomeTask: 'Hello! I\'m your AI assistant. I can help with:<br>• Add & manage tasks<br>• Progress analysis<br>• Smart suggestions<br>• Task breakdown',
+                progress: '📈 Progress',
+                todaySummary: '📋 Today Summary',
+                tips: '💡 Tips',
+                breakdown: '🔨 Breakdown',
+                send: 'Send',
+                goalSetting: '🎯 Goal Setting',
+                goalDesc: 'Set and track your long-term goals',
+                addGoal: '➕ Add Goal',
+                allGoals: 'All Goals',
+                achieved: 'Achieved',
+                totalGoals: 'Total Goals',
+                achievedGoals: 'Achieved',
+                completionRate: 'Completion Rate',
+                activeGoals: 'Active',
+                goalProgress: '📈 Goal Progress',
+                smartTemplate: '📄 SMART Template',
+                goalAssistant: '🤖 Goal Assistant',
+                aiWelcomeGoal: 'I can help with your goals:<br>• Create SMART goals<br>• Milestone tracking<br>• Progress analysis',
+                smart: '🎯 SMART',
+                personalJournal: '📔 Personal Journal',
+                journalDesc: 'Record your thoughts, feelings and experiences',
+                todayDate: 'Today\'s Date',
+                todayMood: 'Today\'s Mood',
+                title: 'Title',
+                todayEntry: 'Today\'s Entry',
+                gratitude: 'Gratitude',
+                save: '💾 Save',
+                previousJournals: '📚 Previous Journals',
+                thisWeek: 'This Week',
+                thisMonth: 'This Month',
+                journalStats: '📊 Journal Stats',
+                totalJournals: 'Total Journals',
+                dayStreak: 'Day Streak',
+                commonMood: 'Common Mood',
+                journalAssistant: '🤖 Journal Assistant',
+                aiWelcomeJournal: 'Journal writing tips:<br>• Best moment today<br>• What you learned<br>• Tomorrow\'s plan',
+                prompt: '✍️ Prompt',
+                analysis: '📊 Analysis',
+                calendarView: '📅 Calendar View',
+                previousMonth: '⬅️ Previous',
+                nextMonth: 'Next ➡️',
+                today: 'Today',
+                habitTracker: '🔄 Habit Tracker',
+                habitDesc: 'Build good daily habits',
+                daily: 'Daily',
+                weekly: 'Weekly',
+                monthly: 'Monthly',
+                habitStats: '📊 Habit Stats',
+                totalHabits: 'Total Habits',
+                bestStreak: 'Best Streak',
+                doneToday: 'Done Today',
+                rate: 'Rate',
+                achievements: '🏆 Achievements',
+                analyticsDashboard: '📊 Analytics Dashboard',
+                totalTasksAnalytics: 'Total Tasks',
+                streak: 'Streak',
+                xpPoints: 'XP Points',
+                weeklyProductivity: '📈 Weekly Productivity',
+                byCategory: '🎯 By Category',
+                weeklyReport: '📄 Weekly Report',
+                monthlyReport: '📄 Monthly Report',
+                pomodoroTimer: '⏱️ Pomodoro Timer',
+                ready: 'Ready',
+                start: '▶️ Start',
+                pause: '⏸️ Pause',
+                reset: '🔄 Reset',
+                skip: '⏭️ Skip',
+                session: 'Session:',
+                work25: 'Work (25 min)',
+                shortBreak5: 'Short Break (5 min)',
+                longBreak15: 'Long Break (15 min)',
+                todaySessions: 'Today\'s Sessions: SESSIONS',
+                linkedTask: 'Linked Task',
+                selectTask: 'Select task...',
+                noTasks: 'No tasks',
+                noGoals: 'No goals',
+                noJournals: 'No journals',
+                noHabits: 'No habits',
+                delete: 'Delete',
+                confirmDelete: 'Delete?',
+                high: 'High',
+                medium: 'Medium',
+                low: 'Low',
+                taskAdded: 'Task added! +5 XP',
+                taskCompleted: 'Task completed! +10 XP 🎉',
+                taskDeleted: 'Task deleted',
+                goalAdded: 'Goal added! +10 XP',
+                goalAchieved: '🎉 Goal achieved! +50 XP',
+                journalSaved: 'Journal saved! +15 XP',
+                habitAdded: 'Habit added!',
+                pomodoroComplete: '🍅 Pomodoro session complete! +5 XP',
+                dataExported: 'Data exported successfully!',
+                dataImported: 'Data imported successfully!',
+                dataCleared: 'All data cleared',
+                focusOn: 'Focus mode on',
+                focusOff: 'Focus mode off',
+                themeChanged: 'Theme changed',
+                achievementUnlock: '🏆 Achievement unlocked: NAME!',
+                reminder: '⏰ Reminder: "TASK" - 30 minutes left!',
+                fillRequired: 'Please fill in title and content',
+                importFailed: 'Import failed! Invalid file format.',
+                storageError: 'Storage error! Storage may be full.'
+            }
+        };
+
+        // ===== GLOBAL STATE =====
+        let currentLanguage = 'bn';
+        let currentTab = 'tasks';
+        let currentTheme = 'default';
+        let tasks = [];
+        let goals = [];
+        let journals = [];
+        let habits = [];
+        let currentTaskFilter = 'all';
+        let currentGoalFilter = 'all';
+        let currentJournalFilter = 'all';
+        let selectedMood = '😊';
+        let calendarDate = new Date();
+        let selectedCalendarDate = new Date();
+        let xpPoints = 0;
+        let achievements = {};
+        let focusMode = false;
+
+        // Pomodoro State
+        let pomodoroInterval = null;
+        let pomodoroSeconds = 25 * 60;
+        let pomodoroIsRunning = false;
+        let pomodoroType = 'work';
+        let pomodoroSessionCount = 0;
+        let pomodoroTotalSessions = 0;
+
+        // ===== TRANSLATION FUNCTION =====
+        function t(key, replacements) {
+            let text = translations[currentLanguage][key] || key;
+            if (replacements) {
+                for (let rKey in replacements) {
+                    text = text.replace(rKey, replacements[rKey]);
+                }
+            }
+            return text;
+        }
+
+        function updateAllTranslations() {
+            // Update all elements with data-bn and data-en attributes
+            const elements = document.querySelectorAll('[data-bn][data-en]');
+            elements.forEach(function(el) {
+                const bnText = el.getAttribute('data-bn');
+                const enText = el.getAttribute('data-en');
+                if (currentLanguage === 'bn' && bnText) {
+                    el.textContent = bnText;
+                } else if (currentLanguage === 'en' && enText) {
+                    el.textContent = enText;
+                }
+            });
+
+            // Update placeholders
+            const placeholderElements = document.querySelectorAll('[data-bn-placeholder][data-en-placeholder]');
+            placeholderElements.forEach(function(el) {
+                const bnPlaceholder = el.getAttribute('data-bn-placeholder');
+                const enPlaceholder = el.getAttribute('data-en-placeholder');
+                if (currentLanguage === 'bn' && bnPlaceholder) {
+                    el.placeholder = bnPlaceholder;
+                } else if (currentLanguage === 'en' && enPlaceholder) {
+                    el.placeholder = enPlaceholder;
+                }
+            });
+
+            // Update select options
+            const selectOptions = document.querySelectorAll('option[data-bn][data-en]');
+            selectOptions.forEach(function(option) {
+                const bnText = option.getAttribute('data-bn');
+                const enText = option.getAttribute('data-en');
+                if (currentLanguage === 'bn' && bnText) {
+                    option.textContent = bnText;
+                } else if (currentLanguage === 'en' && enText) {
+                    option.textContent = enText;
+                }
+            });
+
+            // Update HTML lang attribute
+            document.documentElement.lang = currentLanguage;
+
+            // Update title
+            document.title = currentLanguage === 'bn' ? 'স্মার্ট টু-ডু লিস্ট | Smart To-Do List Pro' : 'Smart To-Do List Pro';
+
+            // Update language buttons
+            const langBtns = document.querySelectorAll('.lang-btn');
+            langBtns.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-lang') === currentLanguage) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Update dynamic content
+            updateAllUIs();
+        }
+
+        // ===== INITIALIZATION =====
+        function loadData() {
+            try {
+                tasks = JSON.parse(localStorage.getItem('tasksPro')) || [];
+                goals = JSON.parse(localStorage.getItem('goalsPro')) || [];
+                journals = JSON.parse(localStorage.getItem('journalsPro')) || [];
+                habits = JSON.parse(localStorage.getItem('habitsPro')) || [];
+                xpPoints = parseInt(localStorage.getItem('xpPoints')) || 0;
+                achievements = JSON.parse(localStorage.getItem('achievements')) || {};
+            } catch (e) {
+                console.error('Error loading data:', e);
+                tasks = [];
+                goals = [];
+                journals = [];
+                habits = [];
+                xpPoints = 0;
+                achievements = {};
+            }
+            
+            const sessionKey = 'pomodoroSessions_' + new Date().toDateString();
+            pomodoroSessionCount = parseInt(localStorage.getItem(sessionKey)) || 0;
+        }
+
+        function saveData(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+            } catch (e) {
+                console.error('Error saving data:', e);
+                showToast(t('storageError'), 'error');
+            }
+        }
+
+        // ===== TOAST NOTIFICATIONS =====
+        function showToast(message, type) {
+            type = type || 'info';
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-' + type;
+            toast.textContent = message;
+            toast.onclick = function() { toast.remove(); };
+            container.appendChild(toast);
+            
+            setTimeout(function() {
+                if (toast.parentNode) toast.remove();
+            }, 4000);
+
+            if (Notification.permission === 'granted') {
+                try {
+                    new Notification('Smart Task Manager', { body: message });
+                } catch (e) {}
+            }
+        }
+
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+
+        // ===== THEME SYSTEM =====
+        function setTheme(theme) {
+            currentTheme = theme;
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            const themeBtns = document.querySelectorAll('.theme-btn');
+            themeBtns.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-theme') === theme) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            localStorage.setItem('theme', theme);
+        }
+
+        // ===== FOCUS MODE =====
+        function toggleFocusMode() {
+            focusMode = !focusMode;
+            if (focusMode) {
+                document.body.classList.add('focus-mode');
+            } else {
+                document.body.classList.remove('focus-mode');
+            }
+            showToast(focusMode ? t('focusOn') : t('focusOff'), 'info');
+        }
+
+        // ===== LANGUAGE MANAGEMENT =====
+        function setLanguage(lang) {
+            currentLanguage = lang;
+            updateAllTranslations();
+            localStorage.setItem('language', lang);
+        }
+
+        // ===== MODAL SYSTEM =====
+        function openModal(content) {
+            const modalBody = document.getElementById('modalBody');
+            const modalOverlay = document.getElementById('modalOverlay');
+            if (modalBody && modalOverlay) {
+                modalBody.innerHTML = content;
+                modalOverlay.classList.add('active');
+            }
+        }
+
+        function closeModal() {
+            const modalOverlay = document.getElementById('modalOverlay');
+            if (modalOverlay) {
+                modalOverlay.classList.remove('active');
+            }
+        }
+
+        function openSettings() {
+            openModal(
+                '<h2>⚙️ ' + t('settings') + '</h2>' +
+                '<div style="margin-top: 20px;">' +
+                '<h4>' + (currentLanguage === 'bn' ? 'ডাটা ম্যানেজমেন্ট' : 'Data Management') + '</h4>' +
+                '<button class="btn btn-primary" id="modalExportBtn" style="margin: 5px;">💾 ' + t('export') + '</button>' +
+                '<button class="btn btn-outline" id="modalImportBtn" style="margin: 5px;">📥 ' + (currentLanguage === 'bn' ? 'ইম্পোর্ট' : 'Import') + '</button>' +
+                '<input type="file" id="importFile" accept=".json" style="display:none;">' +
+                '<button class="btn btn-danger" id="modalClearBtn" style="margin: 5px;">🗑️ ' + (currentLanguage === 'bn' ? 'সব মুছুন' : 'Clear All') + '</button>' +
+                '</div>' +
+                '<div style="margin-top: 20px;">' +
+                '<h4>' + (currentLanguage === 'bn' ? 'নোটিফিকেশন' : 'Notifications') + '</h4>' +
+                '<button class="btn btn-primary" id="modalNotifBtn">🔔 ' + (currentLanguage === 'bn' ? 'নোটিফিকেশন চালু' : 'Enable Notifications') + '</button>' +
+                '</div>' +
+                '<div style="margin-top: 20px;">' +
+                '<h4>' + (currentLanguage === 'bn' ? 'সম্পর্কে' : 'About') + '</h4>' +
+                '<p>Smart Task Manager Pro v2.0</p>' +
+                '<p>' + (currentLanguage === 'bn' ? 'সমস্ত ফিচার সহ সম্পূর্ণ প্রোডাক্টিভিটি স্যুট' : 'Complete productivity suite with all features') + '</p>' +
+                '</div>'
+            );
+            
+            setTimeout(function() {
+                const exportBtn = document.getElementById('modalExportBtn');
+                const importBtn = document.getElementById('modalImportBtn');
+                const importFile = document.getElementById('importFile');
+                const clearBtn = document.getElementById('modalClearBtn');
+                const notifBtn = document.getElementById('modalNotifBtn');
+                
+                if (exportBtn) exportBtn.onclick = function() { exportData(); closeModal(); };
+                if (importBtn && importFile) importBtn.onclick = function() { importFile.click(); };
+                if (importFile) importFile.onchange = importData;
+                if (clearBtn) clearBtn.onclick = function() {
+                    if (confirm(currentLanguage === 'bn' ? 'সব ডাটা মুছে ফেলবেন? এটা অপরিবর্তনীয়!' : 'Delete all data? This is irreversible!')) {
+                        clearAllData();
+                        closeModal();
+                    }
+                };
+                if (notifBtn) notifBtn.onclick = function() { requestNotificationPermission(); };
+            }, 100);
+        }
+
+        function openTemplateModal(type) {
+            let templates = '';
+            if (type === 'task') {
+                templates =
+                    '<h3>📋 ' + t('template') + '</h3>' +
+                    '<div class="chip" style="cursor:pointer; margin:5px;" data-template="Meeting preparation">' + t('meetingPrep') + '</div>' +
+                    '<div class="chip" style="cursor:pointer; margin:5px;" data-template="Project planning">' + (currentLanguage === 'bn' ? 'প্রজেক্ট প্ল্যানিং' : 'Project Planning') + '</div>' +
+                    '<div class="chip" style="cursor:pointer; margin:5px;" data-template="Weekly review">' + (currentLanguage === 'bn' ? 'সাপ্তাহিক রিভিউ' : 'Weekly Review') + '</div>';
+            } else if (type === 'goal') {
+                templates =
+                    '<h3>🎯 SMART ' + t('template') + '</h3>' +
+                    '<p><strong>S</strong> - ' + (currentLanguage === 'bn' ? 'নির্দিষ্ট' : 'Specific') + '</p>' +
+                    '<p><strong>M</strong> - ' + (currentLanguage === 'bn' ? 'পরিমাপযোগ্য' : 'Measurable') + '</p>' +
+                    '<p><strong>A</strong> - ' + (currentLanguage === 'bn' ? 'অর্জনযোগ্য' : 'Achievable') + '</p>' +
+                    '<p><strong>R</strong> - ' + (currentLanguage === 'bn' ? 'প্রাসঙ্গিক' : 'Relevant') + '</p>' +
+                    '<p><strong>T</strong> - ' + (currentLanguage === 'bn' ? 'সময়বদ্ধ' : 'Time-bound') + '</p>';
+            } else {
+                templates =
+                    '<h3>📔 ' + t('template') + '</h3>' +
+                    '<div class="chip" style="cursor:pointer; margin:5px;" data-template="' + (currentLanguage === 'bn' ? 'আজকের সেরা মুহূর্ত...' : 'Best moment today...') + '">' + (currentLanguage === 'bn' ? 'সেরা মুহূর্ত' : 'Best Moment') + '</div>' +
+                    '<div class="chip" style="cursor:pointer; margin:5px;" data-template="' + (currentLanguage === 'bn' ? 'আজ আমি শিখলাম...' : 'Today I learned...') + '">' + (currentLanguage === 'bn' ? 'শিক্ষা' : 'Learning') + '</div>' +
+                    '<div class="chip" style="cursor:pointer; margin:5px;" data-template="' + (currentLanguage === 'bn' ? 'আগামীকালের পরিকল্পনা...' : 'Tomorrow\'s plan...') + '">' + (currentLanguage === 'bn' ? 'পরিকল্পনা' : 'Plan') + '</div>';
+            }
+            openModal(templates);
+            
+            setTimeout(function() {
+                const chips = document.querySelectorAll('#modalBody .chip[data-template]');
+                chips.forEach(function(chip) {
+                    chip.onclick = function() {
+                        const template = this.getAttribute('data-template');
+                        if (type === 'task') {
+                            const taskInput = document.getElementById('taskInput');
+                            if (taskInput) {
+                                taskInput.value = template;
+                                taskInput.focus();
+                            }
+                        } else if (type === 'journal') {
+                            const journalContent = document.getElementById('journalContent');
+                            if (journalContent) {
+                                journalContent.value = template;
+                                journalContent.focus();
+                            }
+                        }
+                        closeModal();
+                    };
+                });
+            }, 100);
+        }
+
+        // ===== DATA MANAGEMENT =====
+        function exportData() {
+            const allData = {
+                tasks: tasks,
+                goals: goals,
+                journals: journals,
+                habits: habits,
+                xpPoints: xpPoints,
+                achievements: achievements,
+                exportDate: new Date().toISOString(),
+                version: '2.0'
+            };
+            
+            const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'smart-tasks-backup-' + new Date().toISOString().split('T')[0] + '.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast(t('dataExported'), 'success');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.tasks) tasks = data.tasks;
+                    if (data.goals) goals = data.goals;
+                    if (data.journals) journals = data.journals;
+                    if (data.habits) habits = data.habits;
+                    if (data.xpPoints !== undefined) xpPoints = data.xpPoints;
+                    if (data.achievements) achievements = data.achievements;
+                    
+                    saveData('tasksPro', tasks);
+                    saveData('goalsPro', goals);
+                    saveData('journalsPro', journals);
+                    saveData('habitsPro', habits);
+                    localStorage.setItem('xpPoints', xpPoints);
+                    localStorage.setItem('achievements', JSON.stringify(achievements));
+                    
+                    updateAllUIs();
+                    showToast(t('dataImported'), 'success');
+                } catch (err) {
+                    console.error('Import error:', err);
+                    showToast(t('importFailed'), 'error');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function clearAllData() {
+            tasks = [];
+            goals = [];
+            journals = [];
+            habits = [];
+            xpPoints = 0;
+            achievements = {};
+            
+            try {
+                localStorage.removeItem('tasksPro');
+                localStorage.removeItem('goalsPro');
+                localStorage.removeItem('journalsPro');
+                localStorage.removeItem('habitsPro');
+                localStorage.removeItem('xpPoints');
+                localStorage.removeItem('achievements');
+            } catch (e) {}
+            
+            updateAllUIs();
+            showToast(t('dataCleared'), 'info');
+        }
+
+        // ===== QR CODE SHARING =====
+        function shareViaQR() {
+            let data = tasks.map(function(t) { return t.text; }).join('\n');
+            const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(data || 'No data');
+            openModal('<h3>📱 QR ' + (currentLanguage === 'bn' ? 'কোড' : 'Code') + '</h3><img src="' + qrUrl + '" alt="QR Code" style="max-width:100%;"><p>' + (currentLanguage === 'bn' ? 'স্ক্যান করে শেয়ার করুন' : 'Scan to share') + '</p>');
+        }
+
+        // ===== GAMIFICATION =====
+        function addXP(amount) {
+            xpPoints += amount;
+            localStorage.setItem('xpPoints', xpPoints);
+            updateLevel();
+            checkAchievements();
+        }
+
+        function updateLevel() {
+            const level = Math.floor(xpPoints / 100) + 1;
+            const levelBadge = document.getElementById('levelBadge');
+            if (levelBadge) levelBadge.textContent = '⭐ ' + t('level') + ' ' + level;
+        }
+
+        function checkAchievements() {
+            const newAchievements = {};
+            
+            if (tasks.length >= 10 && !achievements['task10']) {
+                newAchievements['task10'] = { name: '10 Tasks', icon: '📋' };
+            }
+            if (tasks.filter(function(t) { return t.completed; }).length >= 50 && !achievements['complete50']) {
+                newAchievements['complete50'] = { name: '50 Completed', icon: '✅' };
+            }
+            if (journals.length >= 7 && !achievements['journal7']) {
+                newAchievements['journal7'] = { name: '7 Journals', icon: '📔' };
+            }
+            
+            const keys = Object.keys(newAchievements);
+            if (keys.length > 0) {
+                for (let i = 0; i < keys.length; i++) {
+                    achievements[keys[i]] = newAchievements[keys[i]];
+                    showToast(t('achievementUnlock', { NAME: newAchievements[keys[i]].name }), 'success');
+                }
+                localStorage.setItem('achievements', JSON.stringify(achievements));
+            }
+        }
+
+        // ===== TAB MANAGEMENT =====
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            tabBtns.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-tab') === tab) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(function(content) {
+                content.classList.remove('active');
+            });
+            
+            const targetTab = document.getElementById(tab + 'Tab');
+            if (targetTab) {
+                targetTab.classList.add('active');
+            }
+            
+            updateAllUIs();
+        }
+
+        function updateAllUIs() {
+            switch (currentTab) {
+                case 'tasks':
+                    renderTasks();
+                    updateTaskAnalytics();
+                    updatePomodoroTaskList();
+                    break;
+                case 'goals':
+                    renderGoals();
+                    updateGoalAnalytics();
+                    break;
+                case 'journal':
+                    renderJournals();
+                    updateJournalAnalytics();
+                    var journalDateEl = document.getElementById('journalDate');
+                    if (journalDateEl) journalDateEl.value = new Date().toISOString().split('T')[0];
+                    break;
+                case 'calendar':
+                    renderCalendar();
+                    break;
+                case 'habits':
+                    renderHabits();
+                    updateHabitAnalytics();
+                    renderAchievements();
+                    break;
+                case 'analytics':
+                    updateAnalyticsTab();
+                    break;
+                case 'pomodoro':
+                    updatePomodoroTaskList();
+                    renderPomodoroSessions();
+                    break;
+            }
+            updateStreak();
+            updateLevel();
+        }
+
+        // ===== TASK FUNCTIONS =====
+        function addTask() {
+            const taskInput = document.getElementById('taskInput');
+            const prioritySelect = document.getElementById('prioritySelect');
+            const dueDateInput = document.getElementById('dueDateInput');
+            const projectSelect = document.getElementById('projectSelect');
+            
+            if (!taskInput) return;
+            
+            const text = taskInput.value.trim();
+            if (!text) {
+                showToast(currentLanguage === 'bn' ? 'টাস্কের নাম লিখুন' : 'Enter task name', 'error');
+                return;
+            }
+            
+            const priority = prioritySelect ? prioritySelect.value : 'medium';
+            const dueDate = dueDateInput ? dueDateInput.value : null;
+            const project = projectSelect ? projectSelect.value : null;
+
+            const task = {
+                id: Date.now(),
+                text: text,
+                priority: priority,
+                project: project || null,
+                dueDate: dueDate || null,
+                completed: false,
+                createdAt: new Date().toISOString(),
+                completedAt: null,
+                completionTime: null,
+                pomodoroSessions: 0
+            };
+
+            tasks.unshift(task);
+            saveData('tasksPro', tasks);
+            addXP(5);
+            renderTasks();
+            updateTaskAnalytics();
+            
+            taskInput.value = '';
+            if (dueDateInput) dueDateInput.value = '';
+            
+            showToast(t('taskAdded'), 'success');
+        }
+
+        function quickAddTask(template) {
+            const taskInput = document.getElementById('taskInput');
+            if (taskInput) {
+                taskInput.value = template;
+                taskInput.focus();
+            }
+        }
+
+        function toggleTask(id) {
+            const task = tasks.find(function(t) { return t.id === id; });
+            if (task) {
+                task.completed = !task.completed;
+                task.completedAt = task.completed ? new Date().toISOString() : null;
+                if (task.completed) {
+                    const created = new Date(task.createdAt);
+                    const completed = new Date(task.completedAt);
+                    task.completionTime = Math.round((completed - created) / 60000);
+                    addXP(10);
+                    showToast(t('taskCompleted'), 'success');
+                }
+                saveData('tasksPro', tasks);
+                renderTasks();
+                updateTaskAnalytics();
+            }
+        }
+
+        function deleteTask(id) {
+            if (confirm(t('confirmDelete'))) {
+                tasks = tasks.filter(function(t) { return t.id !== id; });
+                saveData('tasksPro', tasks);
+                renderTasks();
+                updateTaskAnalytics();
+                showToast(t('taskDeleted'), 'info');
+            }
+        }
+
+        function filterTasks(filter) {
+            currentTaskFilter = filter;
+            const filterBtns = document.querySelectorAll('#taskFilters .filter-btn');
+            filterBtns.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-filter') === filter) {
+                    btn.classList.add('active');
+                }
+            });
+            renderTasks();
+        }
+
+        function renderTasks() {
+            let filtered = tasks.slice();
+            const taskSearch = document.getElementById('taskSearch');
+            const searchQuery = taskSearch ? taskSearch.value.toLowerCase() : '';
+            
+            if (searchQuery) {
+                filtered = filtered.filter(function(t) {
+                    return t.text.toLowerCase().indexOf(searchQuery) !== -1;
+                });
+            }
+            
+            switch (currentTaskFilter) {
+                case 'active':
+                    filtered = filtered.filter(function(t) { return !t.completed; });
+                    break;
+                case 'completed':
+                    filtered = filtered.filter(function(t) { return t.completed; });
+                    break;
+                case 'overdue':
+                    filtered = filtered.filter(function(t) {
+                        return !t.completed && t.dueDate && new Date(t.dueDate) < new Date();
+                    });
+                    break;
+                case 'work':
+                case 'personal':
+                case 'health':
+                case 'learning':
+                    filtered = filtered.filter(function(t) { return t.project === currentTaskFilter; });
+                    break;
+            }
+
+            const taskList = document.getElementById('taskList');
+            if (!taskList) return;
+            
+            if (filtered.length === 0) {
+                taskList.innerHTML = '<p style="text-align: center; color: var(--text-light);">' + t('noTasks') + '</p>';
+            } else {
+                taskList.innerHTML = filtered.map(function(task) {
+                    let projectClass = task.project ? ' project-' + task.project : '';
+                    let completedClass = task.completed ? ' completed' : '';
+                    let overdueClass = '';
+                    
+                    if (!task.completed && task.dueDate && new Date(task.dueDate) < new Date()) {
+                        overdueClass = ' overdue';
+                    }
+                    
+                    const priorityLabel = task.priority === 'high' ? t('high') : task.priority === 'medium' ? t('medium') : t('low');
+                    
+                    return '<div class="item-card' + completedClass + overdueClass + projectClass + '" draggable="true">' +
+                        '<div class="item-header">' +
+                        '<div style="display: flex; align-items: center; gap: 10px;">' +
+                        '<input type="checkbox" ' + (task.completed ? 'checked' : '') + ' data-id="' + task.id + '" class="task-checkbox">' +
+                        '<span class="item-title' + (task.completed ? ' completed' : '') + '">' + task.text + '</span>' +
+                        '</div>' +
+                        '<div style="display: flex; gap: 5px;">' +
+                        (task.pomodoroSessions > 0 ? '<span style="font-size: 11px;">🍅×' + task.pomodoroSessions + '</span>' : '') +
+                        '<button class="btn btn-danger delete-task-btn" style="padding: 5px 10px;" data-id="' + task.id + '">🗑️</button>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="item-meta">' +
+                        '<span class="badge badge-' + task.priority + '">' + priorityLabel + '</span>' +
+                        (task.project ? '<span class="badge badge-project">' + task.project + '</span>' : '') +
+                        (task.dueDate ? '<span>📅 ' + new Date(task.dueDate).toLocaleString(currentLanguage === 'bn' ? 'bn-BD' : 'en-US') + '</span>' : '') +
+                        (task.completionTime ? '<span>⏱️ ' + task.completionTime + 'm</span>' : '') +
+                        (!task.completed && task.dueDate && new Date(task.dueDate) < new Date() ? '<span style="color: #ff4757;">⚠️ ' + t('overdue').replace('⏰ ', '') + '</span>' : '') +
+                        '</div>' +
+                        '</div>';
+                }).join('');
+                
+                setTimeout(function() {
+                    const checkboxes = taskList.querySelectorAll('.task-checkbox');
+                    checkboxes.forEach(function(cb) {
+                        cb.onchange = function() {
+                            toggleTask(parseInt(this.getAttribute('data-id')));
+                        };
+                    });
+                    
+                    const deleteBtns = taskList.querySelectorAll('.delete-task-btn');
+                    deleteBtns.forEach(function(btn) {
+                        btn.onclick = function() {
+                            deleteTask(parseInt(this.getAttribute('data-id')));
+                        };
+                    });
+                }, 0);
+            }
+
+            const totalTasksEl = document.getElementById('totalTasks');
+            const completedTasksEl = document.getElementById('completedTasks');
+            const overdueTasksEl = document.getElementById('overdueTasks');
+            
+            const totalCount = tasks.length;
+            const completedCount = tasks.filter(function(t) { return t.completed; }).length;
+            const overdueCount = tasks.filter(function(t) {
+                return !t.completed && t.dueDate && new Date(t.dueDate) < new Date();
+            }).length;
+            
+            if (totalTasksEl) totalTasksEl.textContent = t('totalTasks').replace('TASKS', totalCount);
+            if (completedTasksEl) completedTasksEl.textContent = t('completedTasks').replace('COMPLETED', completedCount);
+            if (overdueTasksEl) overdueTasksEl.textContent = t('overdueTasks').replace('OVERDUE', overdueCount);
+        }
+
+        function updateTaskAnalytics() {
+            const completed = tasks.filter(function(t) { return t.completed; }).length;
+            const total = tasks.length;
+            const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+            
+            const taskProgress = document.getElementById('taskProgress');
+            if (taskProgress) {
+                taskProgress.style.width = progress + '%';
+                taskProgress.textContent = progress + '%';
+            }
+            
+            const today = new Date().toDateString();
+            const todayCompleted = tasks.filter(function(t) {
+                return t.completed && t.completedAt && new Date(t.completedAt).toDateString() === today;
+            }).length;
+            
+            const todayCompletedEl = document.getElementById('todayCompleted');
+            if (todayCompletedEl) todayCompletedEl.textContent = todayCompleted;
+            
+            const dayNames = currentLanguage === 'bn' ? 
+                ['রবিবার', 'সোমবার', 'মঙ্গলবার', 'বুধবার', 'বৃহস্পতিবার', 'শুক্রবার', 'শনিবার'] :
+                ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            
+            const dayStats = {};
+            tasks.forEach(function(t) {
+                if (t.completed && t.completedAt) {
+                    const day = dayNames[new Date(t.completedAt).getDay()];
+                    dayStats[day] = (dayStats[day] || 0) + 1;
+                }
+            });
+            
+            const bestDayEntry = Object.entries(dayStats).sort(function(a, b) { return b[1] - a[1]; })[0];
+            const bestDayEl = document.getElementById('bestDay');
+            if (bestDayEl) bestDayEl.textContent = bestDayEntry ? bestDayEntry[0] : '-';
+            
+            const completedWithTime = tasks.filter(function(t) { return t.completed && t.completionTime; });
+            const avgTime = completedWithTime.length > 0 ?
+                Math.round(completedWithTime.reduce(function(sum, t) { return sum + t.completionTime; }, 0) / completedWithTime.length) : 0;
+            
+            const avgCompletionEl = document.getElementById('avgCompletion');
+            if (avgCompletionEl) avgCompletionEl.textContent = avgTime + 'm';
+            
+            const score = Math.min(100, (completed * 2) + todayCompleted * 5);
+            const productivityScoreEl = document.getElementById('productivityScore');
+            if (productivityScoreEl) productivityScoreEl.textContent = score;
+        }
+
+        // ===== GOAL FUNCTIONS =====
+        function addGoal() {
+            const goalInput = document.getElementById('goalInput');
+            const goalCategory = document.getElementById('goalCategory');
+            const goalDeadline = document.getElementById('goalDeadline');
+            
+            if (!goalInput) return;
+            
+            const text = goalInput.value.trim();
+            if (!text) {
+                showToast(currentLanguage === 'bn' ? 'লক্ষ্যের নাম লিখুন' : 'Enter goal name', 'error');
+                return;
+            }
+            
+            const category = goalCategory ? goalCategory.value : 'personal';
+            const deadline = goalDeadline ? goalDeadline.value : null;
+
+            const goal = {
+                id: Date.now(),
+                text: text,
+                category: category,
+                deadline: deadline || null,
+                completed: false,
+                progress: 0,
+                milestones: [],
+                createdAt: new Date().toISOString()
+            };
+
+            goals.unshift(goal);
+            saveData('goalsPro', goals);
+            addXP(10);
+            renderGoals();
+            updateGoalAnalytics();
+            
+            goalInput.value = '';
+            if (goalDeadline) goalDeadline.value = '';
+            showToast(t('goalAdded'), 'success');
+        }
+
+        function updateGoalProgress(id, progress) {
+            const goal = goals.find(function(g) { return g.id === id; });
+            if (goal) {
+                goal.progress = Math.min(100, Math.max(0, parseInt(progress)));
+                if (goal.progress === 100 && !goal.completed) {
+                    goal.completed = true;
+                    addXP(50);
+                    showToast(t('goalAchieved'), 'success');
+                }
+                saveData('goalsPro', goals);
+                renderGoals();
+                updateGoalAnalytics();
+            }
+        }
+
+        function toggleGoal(id) {
+            const goal = goals.find(function(g) { return g.id === id; });
+            if (goal) {
+                goal.completed = !goal.completed;
+                goal.progress = goal.completed ? 100 : 0;
+                if (goal.completed) addXP(50);
+                saveData('goalsPro', goals);
+                renderGoals();
+                updateGoalAnalytics();
+            }
+        }
+
+        function deleteGoal(id) {
+            if (confirm(t('confirmDelete'))) {
+                goals = goals.filter(function(g) { return g.id !== id; });
+                saveData('goalsPro', goals);
+                renderGoals();
+                updateGoalAnalytics();
+            }
+        }
+
+        function filterGoals(filter) {
+            currentGoalFilter = filter;
+            const filterBtns = document.querySelectorAll('#goalFilters .filter-btn');
+            filterBtns.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-filter') === filter) {
+                    btn.classList.add('active');
+                }
+            });
+            renderGoals();
+        }
+
+        function renderGoals() {
+            let filtered = goals.slice();
+            switch (currentGoalFilter) {
+                case 'active':
+                    filtered = filtered.filter(function(g) { return !g.completed; });
+                    break;
+                case 'completed':
+                    filtered = filtered.filter(function(g) { return g.completed; });
+                    break;
+                case 'personal':
+                case 'work':
+                    filtered = filtered.filter(function(g) { return g.category === currentGoalFilter; });
+                    break;
+            }
+
+            const goalList = document.getElementById('goalList');
+            if (!goalList) return;
+            
+            if (filtered.length === 0) {
+                goalList.innerHTML = '<p style="text-align: center; color: var(--text-light);">' + t('noGoals') + '</p>';
+            } else {
+                goalList.innerHTML = filtered.map(function(goal) {
+                    return '<div class="item-card' + (goal.completed ? ' completed' : '') + '">' +
+                        '<div class="item-header">' +
+                        '<div style="display: flex; align-items: center; gap: 10px;">' +
+                        '<input type="checkbox" ' + (goal.completed ? 'checked' : '') + ' data-goal-id="' + goal.id + '" class="goal-checkbox">' +
+                        '<span class="item-title' + (goal.completed ? ' completed' : '') + '">' + goal.text + '</span>' +
+                        '</div>' +
+                        '<button class="btn btn-danger delete-goal-btn" style="padding: 5px 10px;" data-goal-id="' + goal.id + '">🗑️</button>' +
+                        '</div>' +
+                        '<div class="progress-bar">' +
+                        '<div class="progress-fill" style="width: ' + goal.progress + '%">' + goal.progress + '%</div>' +
+                        '</div>' +
+                        '<div class="item-meta" style="margin-top: 10px;">' +
+                        '<span class="badge badge-goal">' + goal.category + '</span>' +
+                        (goal.deadline ? '<span>📅 ' + new Date(goal.deadline).toLocaleDateString(currentLanguage === 'bn' ? 'bn-BD' : 'en-US') + '</span>' : '') +
+                        '</div>' +
+                        '<div style="margin-top: 10px;">' +
+                        '<input type="range" min="0" max="100" value="' + goal.progress + '" data-goal-id="' + goal.id + '" class="goal-range" style="width: 100%;">' +
+                        '</div>' +
+                        '</div>';
+                }).join('');
+                
+                setTimeout(function() {
+                    const checkboxes = goalList.querySelectorAll('.goal-checkbox');
+                    checkboxes.forEach(function(cb) {
+                        cb.onchange = function() {
+                            toggleGoal(parseInt(this.getAttribute('data-goal-id')));
+                        };
+                    });
+                    
+                    const deleteBtns = goalList.querySelectorAll('.delete-goal-btn');
+                    deleteBtns.forEach(function(btn) {
+                        btn.onclick = function() {
+                            deleteGoal(parseInt(this.getAttribute('data-goal-id')));
+                        };
+                    });
+                    
+                    const ranges = goalList.querySelectorAll('.goal-range');
+                    ranges.forEach(function(range) {
+                        range.onchange = function() {
+                            updateGoalProgress(parseInt(this.getAttribute('data-goal-id')), this.value);
+                        };
+                    });
+                }, 0);
+            }
+        }
+
+        function updateGoalAnalytics() {
+            const totalGoalsEl = document.getElementById('totalGoals');
+            const achievedGoalsEl = document.getElementById('achievedGoals');
+            const activeGoalsEl = document.getElementById('activeGoals');
+            const goalCompletionEl = document.getElementById('goalCompletion');
+            
+            if (totalGoalsEl) totalGoalsEl.textContent = goals.length;
+            if (achievedGoalsEl) achievedGoalsEl.textContent = goals.filter(function(g) { return g.completed; }).length;
+            if (activeGoalsEl) activeGoalsEl.textContent = goals.filter(function(g) { return !g.completed; }).length;
+            
+            const completionRate = goals.length > 0 ?
+                Math.round((goals.filter(function(g) { return g.completed; }).length / goals.length) * 100) : 0;
+            if (goalCompletionEl) goalCompletionEl.textContent = completionRate + '%';
+        }
+
+        // ===== JOURNAL FUNCTIONS =====
+        function selectMood(mood) {
+            selectedMood = mood;
+            const moodBtns = document.querySelectorAll('.mood-btn');
+            moodBtns.forEach(function(btn) {
+                btn.classList.remove('selected');
+                if (btn.getAttribute('data-mood') === mood) {
+                    btn.classList.add('selected');
+                }
+            });
+        }
+
+        function saveJournal() {
+            const journalDate = document.getElementById('journalDate');
+            const journalTitle = document.getElementById('journalTitle');
+            const journalContent = document.getElementById('journalContent');
+            const gratitudeContent = document.getElementById('gratitudeContent');
+            
+            if (!journalTitle || !journalContent) return;
+            
+            const date = journalDate ? journalDate.value : new Date().toISOString().split('T')[0];
+            const title = journalTitle.value.trim();
+            const content = journalContent.value.trim();
+            const gratitude = gratitudeContent ? gratitudeContent.value.trim() : '';
+
+            if (!title || !content) {
+                showToast(t('fillRequired'), 'error');
+                return;
+            }
+
+            const journal = {
+                id: Date.now(),
+                date: date,
+                title: title,
+                content: content,
+                gratitude: gratitude,
+                mood: selectedMood,
+                createdAt: new Date().toISOString()
+            };
+
+            journals.unshift(journal);
+            saveData('journalsPro', journals);
+            addXP(15);
+            renderJournals();
+            updateJournalAnalytics();
+            
+            journalTitle.value = '';
+            journalContent.value = '';
+            if (gratitudeContent) gratitudeContent.value = '';
+            
+            const moodBtns = document.querySelectorAll('.mood-btn');
+            moodBtns.forEach(function(btn) { btn.classList.remove('selected'); });
+            selectedMood = '😊';
+            
+            showToast(t('journalSaved'), 'success');
+        }
+
+        function deleteJournal(id) {
+            if (confirm(t('confirmDelete'))) {
+                journals = journals.filter(function(j) { return j.id !== id; });
+                saveData('journalsPro', journals);
+                renderJournals();
+                updateJournalAnalytics();
+            }
+        }
+
+        function filterJournals(filter) {
+            currentJournalFilter = filter;
+            const filterBtns = document.querySelectorAll('#journalFilters .filter-btn');
+            filterBtns.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-filter') === filter) {
+                    btn.classList.add('active');
+                }
+            });
+            renderJournals();
+        }
+
+        function renderJournals() {
+            let filtered = journals.slice();
+            const now = new Date();
+            
+            switch (currentJournalFilter) {
+                case 'week':
+                    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                    filtered = filtered.filter(function(j) { return new Date(j.date) >= weekAgo; });
+                    break;
+                case 'month':
+                    const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+                    filtered = filtered.filter(function(j) { return new Date(j.date) >= monthAgo; });
+                    break;
+            }
+
+            const journalEntries = document.getElementById('journalEntries');
+            if (!journalEntries) return;
+            
+            if (filtered.length === 0) {
+                journalEntries.innerHTML = '<p style="text-align: center; color: var(--text-light);">' + t('noJournals') + '</p>';
+            } else {
+                journalEntries.innerHTML = filtered.map(function(journal) {
+                    return '<div class="journal-entry">' +
+                        '<div class="journal-date">' +
+                        new Date(journal.date).toLocaleDateString(currentLanguage === 'bn' ? 'bn-BD' : 'en-US') +
+                        '<span style="float: right;">' + journal.mood + '</span>' +
+                        '</div>' +
+                        '<h4 style="margin-bottom: 10px;">' + journal.title + '</h4>' +
+                        '<div class="journal-text">' + journal.content.substring(0, 200) + (journal.content.length > 200 ? '...' : '') + '</div>' +
+                        (journal.gratitude ? '<div style="color: var(--primary); font-size: 14px; margin-top: 10px;">🙏 ' + journal.gratitude.substring(0, 100) + '</div>' : '') +
+                        '<button class="btn btn-danger delete-journal-btn" style="margin-top: 10px; padding: 5px 15px;" data-journal-id="' + journal.id + '">' + t('delete') + '</button>' +
+                        '</div>';
+                }).join('');
+                
+                setTimeout(function() {
+                    const deleteBtns = journalEntries.querySelectorAll('.delete-journal-btn');
+                    deleteBtns.forEach(function(btn) {
+                        btn.onclick = function() {
+                            deleteJournal(parseInt(this.getAttribute('data-journal-id')));
+                        };
+                    });
+                }, 0);
+            }
+        }
+
+        function updateJournalAnalytics() {
+            const totalJournalsEl = document.getElementById('totalJournals');
+            if (totalJournalsEl) totalJournalsEl.textContent = journals.length;
+            
+            let streak = 0;
+            const today = new Date();
+            for (let i = 0; i < 365; i++) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                if (journals.some(function(j) { return j.date === dateStr; })) {
+                    streak++;
+                } else {
+                    break;
+                }
+            }
+            
+            const journalStreakEl = document.getElementById('journalStreak');
+            if (journalStreakEl) journalStreakEl.textContent = streak;
+            
+            const moodCounts = {};
+            journals.forEach(function(j) {
+                moodCounts[j.mood] = (moodCounts[j.mood] || 0) + 1;
+            });
+            const commonMood = Object.entries(moodCounts).sort(function(a, b) { return b[1] - a[1]; })[0];
+            
+            const commonMoodEl = document.getElementById('commonMood');
+            if (commonMoodEl) commonMoodEl.textContent = commonMood ? commonMood[0] : '-';
+            
+            const thisMonth = new Date().getMonth();
+            const thisYear = new Date().getFullYear();
+            const monthlyCount = journals.filter(function(j) {
+                const d = new Date(j.date);
+                return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+            }).length;
+            
+            const thisMonthJournalsEl = document.getElementById('thisMonthJournals');
+            if (thisMonthJournalsEl) thisMonthJournalsEl.textContent = monthlyCount;
+        }
+
+        // ===== CALENDAR FUNCTIONS =====
+        function navigateCalendar(delta) {
+            if (delta === 0) {
+                calendarDate = new Date();
+            } else {
+                calendarDate.setMonth(calendarDate.getMonth() + delta);
+            }
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const year = calendarDate.getFullYear();
+            const month = calendarDate.getMonth();
+            
+            const monthNames = currentLanguage === 'bn' ?
+                ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'] :
+                ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            const calendarMonthTitle = document.getElementById('calendarMonthTitle');
+            if (calendarMonthTitle) calendarMonthTitle.textContent = monthNames[month] + ' ' + year;
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            let calendarHTML = '';
+            const dayNames = currentLanguage === 'bn' ?
+                ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'] :
+                ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                
+            dayNames.forEach(function(day) {
+                calendarHTML += '<div class="calendar-header">' + day + '</div>';
+            });
+            
+            for (let i = 0; i < firstDay; i++) {
+                calendarHTML += '<div></div>';
+            }
+            
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dateStr = date.toISOString().split('T')[0];
+                const isToday = date.toDateString() === today.toDateString();
+                const isSelected = date.toDateString() === selectedCalendarDate.toDateString();
+                const hasTask = tasks.some(function(t) { return t.dueDate && t.dueDate.startsWith(dateStr); }) ||
+                    journals.some(function(j) { return j.date === dateStr; });
+                
+                calendarHTML += '<div class="calendar-day' +
+                    (isToday ? ' today' : '') +
+                    (isSelected ? ' selected' : '') +
+                    (hasTask ? ' has-task' : '') +
+                    '" data-date="' + dateStr + '">' + day + '</div>';
+            }
+            
+            const calendarView = document.getElementById('calendarView');
+            if (calendarView) {
+                calendarView.innerHTML = calendarHTML;
+                
+                setTimeout(function() {
+                    const days = calendarView.querySelectorAll('.calendar-day[data-date]');
+                    days.forEach(function(dayEl) {
+                        dayEl.onclick = function() {
+                            selectCalendarDate(this.getAttribute('data-date'));
+                        };
+                    });
+                }, 0);
+            }
+            
+            renderSelectedDateTasks();
+        }
+
+        function selectCalendarDate(dateStr) {
+            selectedCalendarDate = new Date(dateStr);
+            renderCalendar();
+            renderSelectedDateTasks();
+        }
+
+        function renderSelectedDateTasks() {
+            const dateStr = selectedCalendarDate.toISOString().split('T')[0];
+            const dateTasks = tasks.filter(function(t) { return t.dueDate && t.dueDate.startsWith(dateStr); });
+            const dateJournals = journals.filter(function(j) { return j.date === dateStr; });
+            
+            const selectedDateTasks = document.getElementById('selectedDateTasks');
+            if (!selectedDateTasks) return;
+            
+            let html = '<h4>' + selectedCalendarDate.toLocaleDateString(currentLanguage === 'bn' ? 'bn-BD' : 'en-US') + '</h4>';
+            
+            if (dateTasks.length > 0) {
+                html += '<h5>' + (currentLanguage === 'bn' ? 'টাস্ক:' : 'Tasks:') + '</h5>';
+                html += dateTasks.map(function(t) {
+                    return '<div class="item-card' + (t.completed ? ' completed' : '') + '">' +
+                        (t.completed ? '✅' : '⬜') + ' ' + t.text + '</div>';
+                }).join('');
+            } else {
+                html += '<p>' + t('noTasks') + '</p>';
+            }
+            
+            if (dateJournals.length > 0) {
+                html += '<h5>' + (currentLanguage === 'bn' ? 'জার্নাল:' : 'Journals:') + '</h5>';
+                html += dateJournals.map(function(j) {
+                    return '<div class="journal-entry"><strong>' + j.title + '</strong> ' + j.mood + '</div>';
+                }).join('');
+            }
+            
+            selectedDateTasks.innerHTML = html;
+        }
+
+        // ===== HABIT FUNCTIONS =====
+        function addHabit() {
+            const habitInput = document.getElementById('habitInput');
+            const habitFrequency = document.getElementById('habitFrequency');
+            
+            if (!habitInput) return;
+            
+            const text = habitInput.value.trim();
+            if (!text) {
+                showToast(currentLanguage === 'bn' ? 'অভ্যাসের নাম লিখুন' : 'Enter habit name', 'error');
+                return;
+            }
+            
+            const frequency = habitFrequency ? habitFrequency.value : 'daily';
+
+            const habit = {
+                id: Date.now(),
+                text: text,
+                frequency: frequency,
+                streak: 0,
+                bestStreak: 0,
+                completedDates: [],
+                createdAt: new Date().toISOString()
+            };
+
+            habits.unshift(habit);
+            saveData('habitsPro', habits);
+            addXP(5);
+            renderHabits();
+            updateHabitAnalytics();
+            habitInput.value = '';
+            showToast(t('habitAdded'), 'success');
+        }
+
+        function toggleHabit(id) {
+            const habit = habits.find(function(h) { return h.id === id; });
+            if (!habit) return;
+            
+            const today = new Date().toISOString().split('T')[0];
+            const index = habit.completedDates.indexOf(today);
+            
+            if (index > -1) {
+                habit.completedDates.splice(index, 1);
+                habit.streak = Math.max(0, habit.streak - 1);
+            } else {
+                habit.completedDates.push(today);
+                habit.streak++;
+                if (habit.streak > habit.bestStreak) habit.bestStreak = habit.streak;
+                addXP(3);
+            }
+            
+            saveData('habitsPro', habits);
+            renderHabits();
+            updateHabitAnalytics();
+        }
+
+        function deleteHabit(id) {
+            if (confirm(t('confirmDelete'))) {
+                habits = habits.filter(function(h) { return h.id !== id; });
+                saveData('habitsPro', habits);
+                renderHabits();
+                updateHabitAnalytics();
+            }
+        }
+
+        function renderHabits() {
+            const today = new Date().toISOString().split('T')[0];
+            const habitList = document.getElementById('habitList');
+            if (!habitList) return;
+            
+            if (habits.length === 0) {
+                habitList.innerHTML = '<p style="text-align: center; color: var(--text-light);">' + t('noHabits') + '</p>';
+            } else {
+                habitList.innerHTML = habits.map(function(habit) {
+                    return '<div class="item-card">' +
+                        '<div class="item-header">' +
+                        '<div style="display: flex; align-items: center; gap: 10px;">' +
+                        '<input type="checkbox" ' + (habit.completedDates.includes(today) ? 'checked' : '') + ' data-habit-id="' + habit.id + '" class="habit-checkbox">' +
+                        '<span class="item-title">' + habit.text + '</span>' +
+                        '</div>' +
+                        '<button class="btn btn-danger delete-habit-btn" style="padding: 5px 10px;" data-habit-id="' + habit.id + '">🗑️</button>' +
+                        '</div>' +
+                        '<div class="item-meta">' +
+                        '<span>🔥 ' + (currentLanguage === 'bn' ? 'স্ট্রিক' : 'Streak') + ': ' + habit.streak + ' ' + t('days') + '</span>' +
+                        '<span>🏆 ' + (currentLanguage === 'bn' ? 'সেরা' : 'Best') + ': ' + habit.bestStreak + ' ' + t('days') + '</span>' +
+                        '<span>📅 ' + habit.frequency + '</span>' +
+                        '</div>' +
+                        '</div>';
+                }).join('');
+                
+                setTimeout(function() {
+                    const checkboxes = habitList.querySelectorAll('.habit-checkbox');
+                    checkboxes.forEach(function(cb) {
+                        cb.onchange = function() {
+                            toggleHabit(parseInt(this.getAttribute('data-habit-id')));
+                        };
+                    });
+                    
+                    const deleteBtns = habitList.querySelectorAll('.delete-habit-btn');
+                    deleteBtns.forEach(function(btn) {
+                        btn.onclick = function() {
+                            deleteHabit(parseInt(this.getAttribute('data-habit-id')));
+                        };
+                    });
+                }, 0);
+            }
+        }
+
+        function updateHabitAnalytics() {
+            const totalHabitsEl = document.getElementById('totalHabits');
+            if (totalHabitsEl) totalHabitsEl.textContent = habits.length;
+            
+            const bestStreak = habits.reduce(function(max, h) { return Math.max(max, h.bestStreak); }, 0);
+            const habitStreakEl = document.getElementById('habitStreak');
+            if (habitStreakEl) habitStreakEl.textContent = bestStreak;
+            
+            const today = new Date().toISOString().split('T')[0];
+            const todayCompleted = habits.filter(function(h) { return h.completedDates.includes(today); }).length;
+            const todayHabitsEl = document.getElementById('todayHabits');
+            if (todayHabitsEl) todayHabitsEl.textContent = todayCompleted;
+            
+            const rate = habits.length > 0 ? Math.round((todayCompleted / habits.length) * 100) : 0;
+            const habitCompletionEl = document.getElementById('habitCompletion');
+            if (habitCompletionEl) habitCompletionEl.textContent = rate + '%';
+        }
+
+        function renderAchievements() {
+            const allAchievements = {
+                'task10': { name: '10 Tasks', icon: '📋' },
+                'complete50': { name: '50 Completed', icon: '✅' },
+                'journal7': { name: '7 Journals', icon: '📔' },
+                'habitStreak30': { name: '30 Day Streak', icon: '🔥' },
+            };
+            
+            const achievementList = document.getElementById('achievementList');
+            if (!achievementList) return;
+            
+            let html = '';
+            const keys = Object.keys(allAchievements);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                const val = allAchievements[key];
+                html += '<span class="achievement-badge ' + (achievements[key] ? 'unlocked' : 'locked') + '" title="' + val.name + '">' +
+                    val.icon + ' ' + val.name + '</span>';
+            }
+            achievementList.innerHTML = html;
+        }
+
+        // ===== ANALYTICS FUNCTIONS =====
+        function updateAnalyticsTab() {
+            const analyticsTotalTasks = document.getElementById('analyticsTotalTasks');
+            const analyticsCompleted = document.getElementById('analyticsCompleted');
+            const analyticsStreak = document.getElementById('analyticsStreak');
+            const analyticsXp = document.getElementById('analyticsXp');
+            
+            if (analyticsTotalTasks) analyticsTotalTasks.textContent = tasks.length;
+            if (analyticsCompleted) analyticsCompleted.textContent = tasks.filter(function(t) { return t.completed; }).length;
+            if (analyticsStreak) analyticsStreak.textContent = calculateStreak();
+            if (analyticsXp) analyticsXp.textContent = xpPoints;
+            
+            const dayNames = currentLanguage === 'bn' ?
+                ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি'] :
+                ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            const weeklyData = {};
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                const completed = tasks.filter(function(t) {
+                    return t.completed && t.completedAt && t.completedAt.startsWith(dateStr);
+                }).length;
+                weeklyData[dayNames[date.getDay()]] = completed;
+            }
+            
+            const maxWeekly = Math.max.apply(null, Object.values(weeklyData).concat([1]));
+            const weeklyChart = document.getElementById('weeklyChart');
+            if (weeklyChart) {
+                let chartHTML = '';
+                const entries = Object.entries(weeklyData);
+                for (let i = 0; i < entries.length; i++) {
+                    chartHTML += '<div class="bar" style="height: ' + (entries[i][1] / maxWeekly * 120) + 'px;">' +
+                        '<span class="bar-value">' + entries[i][1] + '</span>' +
+                        '<span class="bar-label">' + entries[i][0] + '</span>' +
+                        '</div>';
+                }
+                weeklyChart.innerHTML = chartHTML;
+            }
+            
+            const categories = { 'work': 0, 'personal': 0, 'health': 0, 'learning': 0 };
+            tasks.forEach(function(t) {
+                if (t.project && categories.hasOwnProperty(t.project)) categories[t.project]++;
+            });
+            const maxCat = Math.max.apply(null, Object.values(categories).concat([1]));
+            const categoryChart = document.getElementById('categoryChart');
+            if (categoryChart) {
+                let chartHTML = '';
+                const catEntries = Object.entries(categories);
+                for (let i = 0; i < catEntries.length; i++) {
+                    chartHTML += '<div class="bar" style="height: ' + (catEntries[i][1] / maxCat * 120) + 'px;">' +
+                        '<span class="bar-value">' + catEntries[i][1] + '</span>' +
+                        '<span class="bar-label">' + catEntries[i][0] + '</span>' +
+                        '</div>';
+                }
+                categoryChart.innerHTML = chartHTML;
+            }
+        }
+
+        function generateReport(type) {
+            const reportData = {
+                type: type,
+                generatedAt: new Date().toISOString(),
+                totalTasks: tasks.length,
+                completedTasks: tasks.filter(function(t) { return t.completed; }).length,
+                goals: goals.filter(function(g) { return g.completed; }).length,
+                journals: journals.length,
+                habits: habits.reduce(function(sum, h) { return sum + h.completedDates.length; }, 0),
+                xpPoints: xpPoints,
+                streak: calculateStreak()
+            };
+            
+            openModal(
+                '<h3>📄 ' + (type === 'weekly' ? t('weeklyReport') : t('monthlyReport')) + '</h3>' +
+                '<pre style="background: var(--bg); padding: 20px; border-radius: 10px; overflow-x: auto;">' +
+                JSON.stringify(reportData, null, 2) + '</pre>' +
+                '<button class="btn btn-primary" id="reportExportBtn">💾 ' + t('export') + '</button>'
+            );
+            
+            setTimeout(function() {
+                const reportExportBtn = document.getElementById('reportExportBtn');
+                if (reportExportBtn) {
+                    reportExportBtn.onclick = function() { exportData(); closeModal(); };
+                }
+            }, 100);
+        }
+
+        // ===== POMODORO FUNCTIONS =====
+        function updatePomodoroTaskList() {
+            const select = document.getElementById('pomodoroTaskLink');
+            if (!select) return;
+            
+            const activeTasks = tasks.filter(function(t) { return !t.completed; });
+            let options = '<option value="">' + t('selectTask') + '</option>';
+            activeTasks.forEach(function(t) {
+                options += '<option value="' + t.id + '">' + t.text + '</option>';
+            });
+            select.innerHTML = options;
+        }
+
+        function startPomodoro() {
+            if (pomodoroIsRunning) return;
+            pomodoroIsRunning = true;
+            
+            const startBtn = document.getElementById('pomodoroStartBtn');
+            const pauseBtn = document.getElementById('pomodoroPauseBtn');
+            const statusEl = document.getElementById('pomodoroStatus');
+            
+            if (startBtn) startBtn.style.display = 'none';
+            if (pauseBtn) pauseBtn.style.display = 'inline-flex';
+            if (statusEl) statusEl.textContent = currentLanguage === 'bn' ? 'চলছে...' : 'Running...';
+            
+            pomodoroInterval = setInterval(function() {
+                pomodoroSeconds--;
+                updatePomodoroDisplay();
+                
+                if (pomodoroSeconds <= 0) {
+                    completePomodoroSession();
+                }
+            }, 1000);
+        }
+
+        function pausePomodoro() {
+            pomodoroIsRunning = false;
+            clearInterval(pomodoroInterval);
+            
+            const startBtn = document.getElementById('pomodoroStartBtn');
+            const pauseBtn = document.getElementById('pomodoroPauseBtn');
+            const statusEl = document.getElementById('pomodoroStatus');
+            
+            if (startBtn) startBtn.style.display = 'inline-flex';
+            if (pauseBtn) pauseBtn.style.display = 'none';
+            if (statusEl) statusEl.textContent = t('pause').replace('⏸️ ', '');
+        }
+
+        function resetPomodoro() {
+            pausePomodoro();
+            const sessionType = document.getElementById('pomodoroSessionType');
+            const type = sessionType ? sessionType.value : 'work';
+            pomodoroType = type;
+            
+            switch (type) {
+                case 'work': pomodoroSeconds = 25 * 60; break;
+                case 'shortBreak': pomodoroSeconds = 5 * 60; break;
+                case 'longBreak': pomodoroSeconds = 15 * 60; break;
+                default: pomodoroSeconds = 25 * 60;
+            }
+            
+            updatePomodoroDisplay();
+            const statusEl = document.getElementById('pomodoroStatus');
+            if (statusEl) statusEl.textContent = t('ready');
+        }
+
+        function skipPomodoro() {
+            pausePomodoro();
+            resetPomodoro();
+            showToast(currentLanguage === 'bn' ? 'সেশন স্কিপ করা হয়েছে' : 'Session skipped', 'info');
+        }
+
+        function completePomodoroSession() {
+            pausePomodoro();
+            pomodoroSessionCount++;
+            pomodoroTotalSessions++;
+            
+            const sessionKey = 'pomodoroSessions_' + new Date().toDateString();
+            localStorage.setItem(sessionKey, pomodoroSessionCount);
+            
+            const taskLink = document.getElementById('pomodoroTaskLink');
+            const taskId = taskLink ? taskLink.value : null;
+            if (taskId) {
+                const task = tasks.find(function(t) { return t.id == taskId; });
+                if (task) {
+                    task.pomodoroSessions = (task.pomodoroSessions || 0) + 1;
+                    saveData('tasksPro', tasks);
+                }
+            }
+            
+            addXP(5);
+            showToast(t('pomodoroComplete'), 'success');
+            
+            const sessionType = document.getElementById('pomodoroSessionType');
+            if (pomodoroType === 'work') {
+                if (pomodoroTotalSessions % 4 === 0) {
+                    if (sessionType) sessionType.value = 'longBreak';
+                } else {
+                    if (sessionType) sessionType.value = 'shortBreak';
+                }
+            } else {
+                if (sessionType) sessionType.value = 'work';
+            }
+            
+            resetPomodoro();
+            renderPomodoroSessions();
+            const pomodoroCountEl = document.getElementById('pomodoroCount');
+            if (pomodoroCountEl) pomodoroCountEl.textContent = t('todaySessions').replace('SESSIONS', pomodoroSessionCount);
+        }
+
+        function updatePomodoroDisplay() {
+            const minutes = Math.floor(pomodoroSeconds / 60);
+            const seconds = pomodoroSeconds % 60;
+            const timerEl = document.getElementById('pomodoroTimer');
+            if (timerEl) {
+                timerEl.textContent = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+            }
+        }
+
+        function renderPomodoroSessions() {
+            const container = document.getElementById('pomodoroSessions');
+            if (!container) return;
+            
+            let dots = '';
+            for (let i = 0; i < 4; i++) {
+                if (i < pomodoroTotalSessions % 4) {
+                    dots += '<span class="session-dot completed"></span>';
+                } else if (i === pomodoroTotalSessions % 4 && pomodoroIsRunning) {
+                    dots += '<span class="session-dot current"></span>';
+                } else {
+                    dots += '<span class="session-dot"></span>';
+                }
+            }
+            container.innerHTML = dots;
+        }
+
+        // ===== STREAK CALCULATION =====
+        function calculateStreak() {
+            let streak = 0;
+            const today = new Date();
+            
+            for (let i = 0; i < 365; i++) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                
+                const hasActivity = tasks.some(function(t) {
+                    return t.completed && t.completedAt && t.completedAt.startsWith(dateStr);
+                }) || journals.some(function(j) { return j.date === dateStr; }) ||
+                    habits.some(function(h) { return h.completedDates.includes(dateStr); });
+                
+                if (hasActivity) streak++;
+                else break;
+            }
+            return streak;
+        }
+
+        function updateStreak() {
+            const streak = calculateStreak();
+            const streakBadge = document.getElementById('streakBadge');
+            if (streakBadge) streakBadge.textContent = '🔥 ' + streak + ' ' + t('days');
+        }
+
+        // ===== CHAT FUNCTIONS =====
+        function addChatMessage(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            const div = document.createElement('div');
+            div.className = 'chat-message';
+            div.innerHTML = '<div class="' + (type === 'user' ? 'user-msg' : 'assistant-msg') + '">' +
+                message.replace(/\n/g, '<br>') + '</div>';
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function processAIQuery(message, context) {
+            const lower = message.toLowerCase();
+            
+            if (context === 'task') {
+                if (lower.indexOf('breakdown') !== -1 || lower.indexOf('ব্রেকডাউন') !== -1) {
+                    return currentLanguage === 'bn' ?
+                        'টাস্ক ব্রেকডাউন:\n1. প্রথম ধাপ চিহ্নিত করুন\n2. সময় নির্ধারণ করুন\n3. প্রয়োজনীয় রিসোর্স সংগ্রহ করুন\n4. কাজ শুরু করুন\n5. রিভিউ ও আপডেট করুন' :
+                        'Task Breakdown:\n1. Identify first step\n2. Set time estimate\n3. Gather resources\n4. Start working\n5. Review & update';
+                }
+                if (lower.indexOf('progress') !== -1 || lower.indexOf('অগ্রগতি') !== -1) {
+                    const completed = tasks.filter(function(t) { return t.completed; }).length;
+                    return (currentLanguage === 'bn' ? 'আপনার অগ্রগতি: ' : 'Your progress: ') +
+                        (tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0) + '%\n' +
+                        (currentLanguage === 'bn' ? 'মোট: ' : 'Total: ') + tasks.length + '\n' +
+                        (currentLanguage === 'bn' ? 'সম্পন্ন: ' : 'Completed: ') + completed + '\nXP: ' + xpPoints;
+                }
+            }
+            
+            if (context === 'goal') {
+                if (lower.indexOf('smart') !== -1) {
+                    return 'SMART Goals:\nS - Specific\nM - Measurable\nA - Achievable\nR - Relevant\nT - Time-bound';
+                }
+            }
+            
+            return currentLanguage === 'bn' ? 'আমি আপনার সহকারী। কীভাবে সাহায্য করতে পারি?' : 'I am your assistant. How can I help?';
+        }
+
+        function sendTaskMessage() {
+            const input = document.getElementById('taskChatInput');
+            if (!input) return;
+            const message = input.value.trim();
+            if (!message) return;
+            addChatMessage('taskChatMessages', message, 'user');
+            addChatMessage('taskChatMessages', processAIQuery(message, 'task'), 'assistant');
+            input.value = '';
+        }
+
+        function sendGoalMessage() {
+            const input = document.getElementById('goalChatInput');
+            if (!input) return;
+            const message = input.value.trim();
+            if (!message) return;
+            addChatMessage('goalChatMessages', message, 'user');
+            addChatMessage('goalChatMessages', processAIQuery(message, 'goal'), 'assistant');
+            input.value = '';
+        }
+
+        function sendJournalMessage() {
+            const input = document.getElementById('journalChatInput');
+            if (!input) return;
+            const message = input.value.trim();
+            if (!message) return;
+            addChatMessage('journalChatMessages', message, 'user');
+            const prompts = currentLanguage === 'bn' ?
+                ['আজকের সেরা মুহূর্ত কী?', 'আজ কী শিখলেন?', 'আগামীকালের পরিকল্পনা কী?'] :
+                ['What was the best moment today?', 'What did you learn today?', 'What\'s your plan for tomorrow?'];
+            addChatMessage('journalChatMessages', prompts[Math.floor(Math.random() * prompts.length)], 'assistant');
+            input.value = '';
+        }
+
+        // ===== EVENT LISTENERS SETUP =====
+        function setupEventListeners() {
+            // Tab navigation
+            document.querySelectorAll('.tab-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    switchTab(this.getAttribute('data-tab'));
+                });
+            });
+            
+            // Language toggle
+            document.querySelectorAll('.lang-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    setLanguage(this.getAttribute('data-lang'));
+                });
+            });
+            
+            // Theme toggle
+            document.querySelectorAll('.theme-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    setTheme(this.getAttribute('data-theme'));
+                });
+            });
+            
+            // Focus mode
+            document.getElementById('focusModeBtn')?.addEventListener('click', toggleFocusMode);
+            
+            // Export
+            document.getElementById('exportBtn')?.addEventListener('click', exportData);
+            
+            // Settings
+            document.getElementById('settingsBtn')?.addEventListener('click', openSettings);
+            
+            // Modal close
+            document.getElementById('modalCloseBtn')?.addEventListener('click', closeModal);
+            document.getElementById('modalOverlay')?.addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+            
+            // Add task
+            document.getElementById('addTaskBtn')?.addEventListener('click', addTask);
+            document.getElementById('taskInput')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addTask();
+            });
+            
+            // Task search
+            document.getElementById('taskSearch')?.addEventListener('input', renderTasks);
+            
+            // Task filters
+            document.querySelectorAll('#taskFilters .filter-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    filterTasks(this.getAttribute('data-filter'));
+                });
+            });
+            
+            // Quick actions
+            document.querySelectorAll('.quick-action-btn[data-template]').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    quickAddTask(this.getAttribute('data-template'));
+                });
+            });
+            
+            // Template buttons
+            document.getElementById('taskTemplateBtn')?.addEventListener('click', function() { openTemplateModal('task'); });
+            document.getElementById('goalTemplateBtn')?.addEventListener('click', function() { openTemplateModal('goal'); });
+            document.getElementById('journalTemplateBtn')?.addEventListener('click', function() { openTemplateModal('journal'); });
+            
+            // QR share
+            document.getElementById('qrShareBtn')?.addEventListener('click', shareViaQR);
+            
+            // Add goal
+            document.getElementById('addGoalBtn')?.addEventListener('click', addGoal);
+            document.getElementById('goalInput')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addGoal();
+            });
+            
+            // Goal filters
+            document.querySelectorAll('#goalFilters .filter-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    filterGoals(this.getAttribute('data-filter'));
+                });
+            });
+            
+            // Journal
+            document.getElementById('saveJournalBtn')?.addEventListener('click', saveJournal);
+            document.querySelectorAll('#journalFilters .filter-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    filterJournals(this.getAttribute('data-filter'));
+                });
+            });
+            
+            // Mood buttons
+            document.querySelectorAll('.mood-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    selectMood(this.getAttribute('data-mood'));
+                });
+            });
+            
+            // Calendar
+            document.getElementById('prevMonthBtn')?.addEventListener('click', function() { navigateCalendar(-1); });
+            document.getElementById('nextMonthBtn')?.addEventListener('click', function() { navigateCalendar(1); });
+            document.getElementById('todayBtn')?.addEventListener('click', function() { navigateCalendar(0); });
+            
+            // Habits
+            document.getElementById('addHabitBtn')?.addEventListener('click', addHabit);
+            document.getElementById('habitInput')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addHabit();
+            });
+            
+            // Chat
+            document.getElementById('sendTaskChatBtn')?.addEventListener('click', sendTaskMessage);
+            document.getElementById('sendGoalChatBtn')?.addEventListener('click', sendGoalMessage);
+            document.getElementById('sendJournalChatBtn')?.addEventListener('click', sendJournalMessage);
+            
+            document.getElementById('taskChatInput')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') sendTaskMessage();
+            });
+            document.getElementById('goalChatInput')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') sendGoalMessage();
+            });
+            document.getElementById('journalChatInput')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') sendJournalMessage();
+            });
+            
+            // Chat chips
+            document.querySelectorAll('#taskChips .chip[data-msg]').forEach(function(chip) {
+                chip.addEventListener('click', function() {
+                    const msg = this.getAttribute('data-msg');
+                    const text = msg === 'progress' ? (currentLanguage === 'bn' ? 'আমার অগ্রগতি দেখান' : 'Show my progress') :
+                                 msg === 'summary' ? (currentLanguage === 'bn' ? 'আজকের সারাংশ' : 'Today summary') :
+                                 msg === 'tips' ? (currentLanguage === 'bn' ? 'পরামর্শ দিন' : 'Give tips') :
+                                 (currentLanguage === 'bn' ? 'টাস্ক ব্রেকডাউন' : 'Task breakdown');
+                    addChatMessage('taskChatMessages', text, 'user');
+                    addChatMessage('taskChatMessages', processAIQuery(msg, 'task'), 'assistant');
+                });
+            });
+            
+            document.querySelectorAll('#goalChips .chip[data-msg]').forEach(function(chip) {
+                chip.addEventListener('click', function() {
+                    const msg = this.getAttribute('data-msg');
+                    const text = msg === 'smart' ? 'SMART ' + (currentLanguage === 'bn' ? 'লক্ষ্য কী?' : 'goals?') :
+                                 msg === 'progress' ? (currentLanguage === 'bn' ? 'অগ্রগতি দেখান' : 'Show progress') :
+                                 (currentLanguage === 'bn' ? 'টিপস দিন' : 'Give tips');
+                    addChatMessage('goalChatMessages', text, 'user');
+                    addChatMessage('goalChatMessages', processAIQuery(msg, 'goal'), 'assistant');
+                });
+            });
+            
+            document.querySelectorAll('#journalChips .chip[data-msg]').forEach(function(chip) {
+                chip.addEventListener('click', function() {
+                    const msg = this.getAttribute('data-msg');
+                    const text = msg === 'prompt' ? (currentLanguage === 'bn' ? 'লেখার প্রম্পট দিন' : 'Give writing prompt') :
+                                 (currentLanguage === 'bn' ? 'মুড বিশ্লেষণ' : 'Mood analysis');
+                    addChatMessage('journalChatMessages', text, 'user');
+                    const prompts = currentLanguage === 'bn' ?
+                        ['আজকের সেরা মুহূর্ত কী?', 'আজ কী শিখলেন?', 'আগামীকালের পরিকল্পনা কী?'] :
+                        ['What was the best moment today?', 'What did you learn today?', 'What\'s your plan for tomorrow?'];
+                    addChatMessage('journalChatMessages', prompts[Math.floor(Math.random() * prompts.length)], 'assistant');
+                });
+            });
+            
+            // Pomodoro
+            document.getElementById('pomodoroStartBtn')?.addEventListener('click', startPomodoro);
+            document.getElementById('pomodoroPauseBtn')?.addEventListener('click', pausePomodoro);
+            document.getElementById('pomodoroResetBtn')?.addEventListener('click', resetPomodoro);
+            document.getElementById('pomodoroSkipBtn')?.addEventListener('click', skipPomodoro);
+            document.getElementById('pomodoroSessionType')?.addEventListener('change', resetPomodoro);
+            
+            // Reports
+            document.getElementById('weeklyReportBtn')?.addEventListener('click', function() { generateReport('weekly'); });
+            document.getElementById('monthlyReportBtn')?.addEventListener('click', function() { generateReport('monthly'); });
+            document.getElementById('exportDataBtn')?.addEventListener('click', exportData);
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    switch (e.key) {
+                        case '1': e.preventDefault(); switchTab('tasks'); break;
+                        case '2': e.preventDefault(); switchTab('goals'); break;
+                        case '3': e.preventDefault(); switchTab('journal'); break;
+                        case '4': e.preventDefault(); switchTab('calendar'); break;
+                        case '5': e.preventDefault(); switchTab('habits'); break;
+                        case 'f': e.preventDefault(); toggleFocusMode(); break;
+                        case 's': e.preventDefault(); exportData(); break;
+                    }
+                }
+                if (e.key === 'Escape') closeModal();
+            });
+        }
+
+        // ===== INITIALIZATION =====
+        function init() {
+            loadData();
+            
+            // Load saved language
+            const savedLang = localStorage.getItem('language') || 'bn';
+            currentLanguage = savedLang;
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme') || 'default';
+            setTheme(savedTheme);
+            
+            // Set journal date
+            const journalDateEl = document.getElementById('journalDate');
+            if (journalDateEl) journalDateEl.value = new Date().toISOString().split('T')[0];
+            
+            // Request notification permission
+            requestNotificationPermission();
+            
+            // Setup all event listeners
+            setupEventListeners();
+            
+            // Initial render with translations
+            updateAllTranslations();
+            resetPomodoro();
+            renderPomodoroSessions();
+            
+            console.log('🚀 Smart Task Manager Pro v2.0 initialized!');
+        }
+
+        // Start the application
+        init();
+    </script>
+</body>
+</html>
